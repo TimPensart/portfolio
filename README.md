@@ -1,6 +1,6 @@
 # Welcome
 
-This porftolio Website made was with:
+This porftolio Website was made using:
 - React
 - TypeScript
 - Styled-components
