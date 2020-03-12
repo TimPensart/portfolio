@@ -13,8 +13,6 @@ import { animateScroll as scroll } from "react-scroll";
 
 function App() {
   useEffect(() => {
-    // Update the document title using the browser API
-
     scrollToTop();
   });
 
@@ -24,22 +22,22 @@ function App() {
 
   return (
     <div>
-        <ThemeProvider theme={light}>
-          <GlobalStyle />
+      <ThemeProvider theme={light}>
+        <GlobalStyle />
 
-          <Navbar />
+        <Navbar />
 
-          <MainStyle>
-            <Home />
+        <MainStyle>
+          <Home />
 
-            <div id="work">
-              <Work />
-            </div>
-            <div id="about">
-              <About />
-            </div>
-          </MainStyle>
-        </ThemeProvider>
+          <div id="work">
+            <Work />
+          </div>
+          <div id="about">
+            <About />
+          </div>
+        </MainStyle>
+      </ThemeProvider>
     </div>
   );
 }
