@@ -1,8 +1,46 @@
-import React from 'react';
+import React, { useEffect } from "react";
+import { Navbar } from "./components/navbar/navbar";
+import { Home } from "./home";
+import { Work } from "./work";
+import { About } from "./about";
+import { Contact } from "./contact";
+import GlobalStyle from "./styles/global";
+import { MainStyle } from "./styles/main-style";
+import { ThemeProvider } from "styled-components";
+import light from "./styles/themes/light";
+import * as Scroll from "react-scroll";
+import { animateScroll as scroll } from "react-scroll";
 
 function App() {
+  useEffect(() => {
+    // Update the document title using the browser API
+
+    scrollToTop();
+  });
+
+  const scrollToTop = () => {
+    scroll.scrollToTop();
+  };
+
   return (
-    <div>portfolio</div>
+    <div>
+        <ThemeProvider theme={light}>
+          <GlobalStyle />
+
+          <Navbar />
+
+          <MainStyle>
+            <Home />
+
+            <div id="work">
+              <Work />
+            </div>
+            <div id="about">
+              <About />
+            </div>
+          </MainStyle>
+        </ThemeProvider>
+    </div>
   );
 }
 
