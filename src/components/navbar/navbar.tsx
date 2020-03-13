@@ -34,7 +34,11 @@ export const Navbar = () => {
               About
             </ScrollLink>
           </li>
-          <li>Contact</li>
+          <li>
+            <ScrollLink to="contact" smooth={true} duration={1000}>
+              Contact
+            </ScrollLink>
+          </li>
         </ul>
       </div>
     </StyledNav>

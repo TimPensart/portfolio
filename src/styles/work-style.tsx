@@ -3,6 +3,6 @@ import styled from "styled-components";
 
 export const WorkStyling = styled.div`
   padding-top: 60px;
-  min-height: 100vh;
+  min-height: 100px;
   height: auto;
 `;

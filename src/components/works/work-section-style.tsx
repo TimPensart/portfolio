@@ -1,5 +1,6 @@
 import React from "react";
 import styled from "styled-components";
+import { prependOnceListener } from "cluster";
 
 interface Props {
   right?: boolean;
@@ -10,16 +11,51 @@ export const WorkSectionStyling = styled.div<Props>`
   margin-bottom: 150px;
 
   .work-image {
-    height: auto;
+    position: relative;
+    height: fit-content;
     max-width: 450px;
     width: auto;
     flex: 1;
+    pointer-events: none;
     order: ${(p: Props) => (p.right ? "3" : "1")};
     /*margin-left: ${(p: Props) => (p.right ? "auto" : "0")};*/
 
     .SkateTerrain {
       width: 100%;
       height: auto;
+      pointer-events: auto;
+      transition: all 300ms ease;
+      box-shadow: ${(p: Props) =>
+        p.right ? "-40px 30px" : "40px 30px"} rgba(9, 185, 135, .4);
+      &:hover {
+        box-shadow: 0 0 rgba(9, 185, 135, .4);
+        filter: brightness(0.5);
+        cursor: pointer;
+      }
+      &:hover + .overlay {
+        opacity: 1;
+      }
+    }
+
+    .overlay {
+      display: table;
+      transition: all 300ms ease;
+      opacity: 0;
+      position: absolute;
+      top: 45%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 100%;
+      height: 100%;
+      text-align: center;
+
+      h2 {
+        display: table-cell;
+        vertical-align: middle;
+        margin: 0;
+        -webkit-text-fill-color: rgba(0,0,0,0);
+        -webkit-text-stroke: 1px white;
+      }
     }
   }
 

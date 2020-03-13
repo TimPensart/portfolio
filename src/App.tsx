@@ -36,6 +36,9 @@ function App() {
           <div id="about">
             <About />
           </div>
+          <div id="contact">
+            <Contact />
+          </div>
         </MainStyle>
       </ThemeProvider>
     </div>

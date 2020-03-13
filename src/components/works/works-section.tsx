@@ -35,6 +35,7 @@ export const WorksSection = (Props: Props) => {
             alt="SkateTerrain app"
             className="SkateTerrain"
           />
+          <div className="overlay"><h2>Check me out</h2></div>
         </ScrollAnimation>
       </div>
 

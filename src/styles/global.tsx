@@ -16,6 +16,11 @@ const GlobalStyle = createGlobalStyle`
         overflow-x: hidden;
     }
 
+    .fadeInLeft {
+        margin: 0;
+        padding: 0;
+    }
+
     @keyframes fadeInUp {
         from {
             opacity: 0;
