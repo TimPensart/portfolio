@@ -1,0 +1,65 @@
+{
+    "name": "theme/plugins",
+    "description": "",
+    "type": "project",
+    "require": {
+        "wpackagist-plugin/wordpress-seo": "^26",
+        "wpackagist-plugin/duplicate-page": "^4.4",
+        "vlucas/phpdotenv": "^3",
+        "johnpbloch/wordpress-core-installer": "^2.0",
+        "johnpbloch/wordpress-core": "^6.6"
+    },
+    "authors": [
+        {
+            "name": "Tim Pensart",
+            "email": "tim.pensart@hotmail.com"
+        }
+    ],
+    "repositories": [
+        {
+            "type": "composer",
+            "url": "https://wpackagist.org",
+            "only": [
+                "wpackagist-plugin/*"
+            ]
+        }
+    ],
+    "extra": {
+        "installer-paths": {
+            "wp-content/themes/{$name}": [
+                "type:wordpress-theme"
+            ],
+            "wp-content/plugins/{$name}/": [
+                "type:wordpress-plugin"
+            ]
+        },
+        "wordpress-install-dir": "core"
+    },
+    "scripts": {
+        "post-update-cmd": [
+            "@salt",
+            "@env",
+            "@permission"
+        ],
+        "post-install-cmd": [
+            "@salt",
+            "@env",
+            "@permission"
+        ],
+        "salt": [
+            "[ -f salt.php ] || (echo '<?php' > salt.php; curl 'https://api.wordpress.org/secret-key/1.1/salt/' >> salt.php; cat salt.php)"
+        ],
+        "env": [
+            "php -r \"file_exists('.env') || copy('example.env', '.env');\""
+        ],
+        "permission": [
+            "php -r \"chmod('.env', 0600);\""
+        ]
+    },
+    "config": {
+        "allow-plugins": {
+            "composer/installers": true,
+            "johnpbloch/wordpress-core-installer": true
+        }
+    }
+}
