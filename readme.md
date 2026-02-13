@@ -2,25 +2,27 @@
 
 Get an Apache or Nginx server running.
 
-Create a MySQL database. Take not of the credentials you create. You will need them later on.
+Create a MySQL database and take note of the credentials you create. You will need them later on.
 
-Download or clone the repo.
+Download or clone this repo.
 
 Run the following command inside of the project's root directory:\
  `composer install`\
 This will install the necessary plugins along with wordpress core files
 
-### wp-config.php
-
-Update your **./wp-config.php** credentials with the credentials of the database you created.
-
-Add the following lines to wp-config.php:
+Copy the example.env and rename it to .env\
+In this .env file you can change the database credentials to the database credentials you created. Also change the WP_HOME and WP_SITEURL to match your site's url. Here is an example:
 
 ```
-define('PROJECT_VERSION', '1.0.0');
-define('WP_ENV', 'local');
+WP_ENV=local
+WP_HOME=http://portfolio.local
+WP_SITEURL=http://portfolio.local/core
+DB_NAME=local
+DB_USER=root
+DB_PASSWORD=root
+DB_HOST=localhost
 ```
 
-Visit the url you created on your server followed by /wp-admin to visit the backend. => follow the wordpress setup and login, you should now be logged in to the backend
+Visit your server/site url followed by /wp-admin to visit the backend. Follow the wordpress setup. After following these steps you should be logged-in to the wordpress backend.
 
-After this, make sure to activate all the installed plugins. Some plugins can be ignored when developing locally.
+Make sure to activate all the installed plugins in the wordpress backend.
