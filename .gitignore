@@ -5,6 +5,7 @@
 /wp-content/plugins/
 /wp-content/updraft/
 /wp-content/uploads/
+*dist/
 .well-known/
 node_modules/
 .env

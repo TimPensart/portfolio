@@ -1,0 +1,7 @@
+@use "../base/variables.scss";
+@use "../base/base.scss";
+
+body {
+    background-color: var(--clr-primary);
+    border: 1px solid var(--clr-secondary);
+}

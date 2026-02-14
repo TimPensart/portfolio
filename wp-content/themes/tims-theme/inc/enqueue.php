@@ -13,7 +13,25 @@ use Tim\Theme\Assets;
  */
 function add_theme_scripts(): void
 {
-    wp_enqueue_style('style', Assets\asset_path('styles/main.css'), null, PROJECT_VERSION);
+
+
+    // get all pages from templates/page-*.php and enqueue the according stylesheet to that page
+    $template_files = glob(get_template_directory() . '/templates/page-*.php');
+    if ($template_files) {
+        foreach ($template_files as $template_file) {
+            $template_slug = basename($template_file);
+            // Check if current page is using this template
+            if (is_page_template('templates/' . $template_slug)) {
+                $template_name = pathinfo($template_slug, PATHINFO_FILENAME); // e.g., page-about
+                wp_enqueue_style(
+                    $template_name . '-style',
+                    Assets\asset_path('styles/pages/' . $template_name . '.css'),
+                    null,
+                    PROJECT_VERSION
+                );
+            }
+        }
+    }
 
     wp_enqueue_script('main', Assets\asset_path('scripts/main.js'), ['jquery'], PROJECT_VERSION, true);
 }
