@@ -1,7 +1,14 @@
 body,
 html {
-    margin: 0 !important;
+    margin: 0;
     padding: 0;
+    border: none;
+    box-sizing: border-box;
 
     min-height: 100dvh;
+}
+
+.container {
+    width: min(90%, 1400px);
+    margin-inline: auto;
 }

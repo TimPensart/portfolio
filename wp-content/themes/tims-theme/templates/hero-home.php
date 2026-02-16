@@ -9,8 +9,8 @@
 // }
 
 ?>
-<section class="hero-home">
+<section class="hero-home bg-black">
     <div class="container">
-
+        <h1>Hello, my name is Tim Pensart</h1>
     </div>
 </section>

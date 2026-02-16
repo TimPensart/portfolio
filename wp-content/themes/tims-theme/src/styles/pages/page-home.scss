@@ -1,7 +1,11 @@
 @use "../base/variables.scss";
+@use "../base/reset.scss";
 @use "../base/base.scss";
+@use "../base/typography.scss";
+@use "../base/helpers.scss";
+
+@use "../layouts/section.scss";
 
 body {
-    background-color: var(--clr-primary);
-    border: 1px solid var(--clr-secondary);
+    background: linear-gradient(to bottom, var(--clr-primary), var(--clr-black));
 }
