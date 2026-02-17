@@ -5,6 +5,7 @@
     "require": {
         "wpackagist-plugin/wordpress-seo": "^26",
         "wpackagist-plugin/duplicate-page": "^4.4",
+        "wpackagist-plugin/secure-custom-fields": "^6.8.0",
         "vlucas/phpdotenv": "^3",
         "johnpbloch/wordpress-core-installer": "^2.0",
         "johnpbloch/wordpress-core": "^6.6"

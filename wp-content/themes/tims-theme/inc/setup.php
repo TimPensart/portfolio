@@ -27,6 +27,19 @@ function setup()
 add_action('after_setup_theme', __NAMESPACE__ . '\\setup');
 
 /**
+ * Allow svg uploads
+ *
+ */
+function enable_svg_upload($upload_mimes)
+{
+    $upload_mimes['svgz'] = 'image/svg+xml';
+    $upload_mimes['svg'] = 'image/svg+xml';
+
+    return $upload_mimes;
+}
+add_filter('upload_mimes', __NAMESPACE__ . '\\enable_svg_upload', 10, 1);
+
+/**
  * TinyMCE editor setup
  */
 function allowed_tags_in_tinymce($settings)

@@ -3,6 +3,21 @@
 namespace Tim\Theme\Global;
 
 /**
+ * function to get global fields
+ * 
+ */
+function get_globals(string $field_key, int $post_id = 16): mixed
+{
+    $global = get_field($field_key, $post_id);
+
+    if (empty($global)) {
+        return false;
+    }
+
+    return $global;
+}
+
+/**
  * function to strip phonenumbers
  *
  * include in page where to use this function: use Tim\Theme\Global;
