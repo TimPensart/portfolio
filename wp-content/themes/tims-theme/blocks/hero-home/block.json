@@ -1,0 +1,16 @@
+{
+    "name": "tim/hero-home",
+    "title": "Hero Home",
+    "description": "A custom hero block for the home page.",
+    "style": ["file:./hero-home.css"],
+    "category": "formatting",
+    "icon": "admin-comments",
+    "keywords": ["hero", "home"],
+    "acf": {
+        "mode": "preview",
+        "renderTemplate": "hero-home.php"
+    },
+    "supports": {
+        "anchor": true
+    }
+}

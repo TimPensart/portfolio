@@ -1,1 +1,1 @@
-console.log("Hello world!");
+import swiper from "swiper/bundle";

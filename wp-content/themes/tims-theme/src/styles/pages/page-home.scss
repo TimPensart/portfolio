@@ -7,5 +7,6 @@
 @use "../layouts/section.scss";
 
 body {
-    background: linear-gradient(to bottom, var(--clr-primary), var(--clr-black));
+    background: var(--clr-black);
+    color: var(--clr-white);
 }

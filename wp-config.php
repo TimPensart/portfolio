@@ -5,7 +5,6 @@ require_once __DIR__ . '/vendor/autoload.php';
 
 define('PROJECT_VERSION', '1.0.0');
 
-
 // =====================================================
 // Load database info and parameters from .env
 // =====================================================

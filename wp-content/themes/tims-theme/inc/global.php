@@ -18,6 +18,17 @@ function get_globals(string $field_key, int $post_id = 16): mixed
 }
 
 /**
+ * function to get current fse template slug
+ * 
+ * @return string
+ */
+function get_current_fse_template_slug(): string
+{
+    global $_wp_current_template_id;
+    return $_wp_current_template_id ?? '';
+}
+
+/**
  * function to strip phonenumbers
  *
  * include in page where to use this function: use Tim\Theme\Global;

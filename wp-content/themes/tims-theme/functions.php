@@ -2,13 +2,13 @@
 
 $sage_includes = array(
     'inc/assets.php',
-    'inc/wrapper.php',
     'inc/setup.php',
     'inc/disable.php',
     'inc/customposttype.php',
     'inc/enqueue.php',
     'inc/filters.php',
     'inc/global.php',
+    'inc/blocks.php',
 );
 
 foreach ($sage_includes as $file) {
