@@ -4,11 +4,19 @@ html {
     padding: 0;
     border: none;
     box-sizing: border-box;
+    overflow-wrap: break-word;
 
     min-height: 100dvh;
+}
+
+body {
+    position: relative;
 }
 
 .container {
     width: min(90%, 1400px);
     margin-inline: auto;
+}
+#wpadminbar {
+    display: none;
 }

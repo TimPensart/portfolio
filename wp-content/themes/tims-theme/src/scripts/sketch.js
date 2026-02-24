@@ -2,21 +2,18 @@ let pg;
 let plasmaShader;
 let palette;
 
-let renderScale = 0.65; // 0.5–0.8 for performance
-
 document.addEventListener("DOMContentLoaded", function () {
     const container = document.getElementById("sketch-canvas");
-    console.log(container.clientHeight);
+    const containerWidth = container.clientWidth;
+    const containerHeight = container.clientHeight;
+
     window.setup = function () {
-        createCanvas(container.offsetWidth, container.offsetHeight).parent("sketch-canvas");
+        createCanvas(containerWidth, containerHeight).parent("sketch-canvas");
         pixelDensity(1);
         imageMode(CENTER);
         noStroke();
 
-        const rw = floor(width * renderScale);
-        const rh = floor(height * renderScale);
-
-        pg = createGraphics(rw, rh, WEBGL);
+        pg = createGraphics(width, height, WEBGL);
         pg.pixelDensity(1);
         pg.noStroke();
 

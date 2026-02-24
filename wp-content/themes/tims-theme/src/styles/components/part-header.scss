@@ -1,0 +1,10 @@
+header.wp-block-template-part {
+    position: absolute;
+    z-index: 1;
+    top: 0;
+    width: 100%;
+
+    .wp-block-site-logo img {
+        width: clamp(2.5rem, 8vw, 7.5rem);
+    }
+}

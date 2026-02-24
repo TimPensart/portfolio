@@ -3,12 +3,17 @@
 require_once __DIR__ . '/vendor/autoload.php';
 (\Dotenv\Dotenv::create(__DIR__ . '/'))->load();
 
-define('PROJECT_VERSION', '1.0.0');
-
 // =====================================================
 // Load database info and parameters from .env
 // =====================================================
 define('WP_ENV', getenv('ENVIRONMENT'));
+
+if (WP_ENV !== 'production') {
+    define('PROJECT_VERSION', time());
+} else {
+    define('PROJECT_VERSION', '1.0.0');
+}
+
 define('DB_NAME', getenv('DB_NAME'));
 define('DB_USER', getenv('DB_USER'));
 define('DB_PASSWORD', getenv('DB_PASSWORD'));

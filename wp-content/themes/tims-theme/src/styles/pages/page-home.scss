@@ -1,12 +1,8 @@
-@use "../base/variables.scss";
 @use "../base/reset.scss";
 @use "../base/base.scss";
 @use "../base/typography.scss";
 @use "../base/helpers.scss";
 
-@use "../layouts/section.scss";
+@use "../components/part-header.scss";
 
-body {
-    background: var(--clr-black);
-    color: var(--clr-white);
-}
+@use "../layouts/section.scss";

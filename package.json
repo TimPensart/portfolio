@@ -20,7 +20,7 @@
         "js": "rollup --config config/rollup.config.mjs --no-sourcemap --silent",
         "process:sass": "node config/echo \"Sass started\" -f 94 && npm --silent run sass && node config/echo \"Sass finished\" -f 94",
         "process:js": "node config/echo \"JS started\" -f 95 && npm --silent run js && node config/echo \"JS finished\" -f 95",
-        "watch:sass": "nodemon --watch wp-content/themes/tims-theme/src/styles/pages --ext scss --silent --quiet --exec \"npm-run-all process:sass\"",
+        "watch:sass": "nodemon --watch wp-content/themes/tims-theme/src/styles/ --ext scss --silent --quiet --exec \"npm-run-all process:sass\"",
         "watch:js": "nodemon --watch wp-content/themes/tims-theme/src/scripts/ --ext js --silent --quiet --exec \"npm-run-all process:js\"",
         "dev": "run-p watch:sass watch:sass:blocks watch:js"
     },

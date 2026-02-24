@@ -18,7 +18,7 @@ if (! empty($block['align'])) {
 ?>
 
 <div <?php echo esc_attr($anchor); ?>class="<?php echo esc_attr($class_name); ?>">
-    <h2>Hero home Block</h2>
+    <h1>Tim Pensart</h1>
 
     <div id="sketch-canvas"></div>
 
