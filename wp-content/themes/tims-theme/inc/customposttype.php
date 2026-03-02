@@ -14,14 +14,14 @@ function create_posttype(): void
             'public'                => true,
             'publicly_queryable'    => true,
             'has_archive'           => false,
-            'hierarchical'          => true,
+            'hierarchical'          => false,
             'can_export'            => true,
+            'show_in_rest'          => true,
             'show_in_menu'          => true,
             'show_in_nav_menus'     => true,
-            'delete_with_user'      => false,
             'exclude_from_search'   => false,
             'rewrite'               => ['slug' => 'project'],
-            'supports'              => ['title', 'excerpt', 'thumbnail', 'revisions', 'editor', 'author'],
+            'supports'              => ['title', 'excerpt', 'thumbnail', 'editor', 'revisions'],
             'menu_icon'             => 'dashicons-admin-post',
         ]
     );

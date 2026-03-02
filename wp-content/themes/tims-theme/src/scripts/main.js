@@ -1,2 +1,4 @@
-import swiper from "swiper/bundle";
+import swipers from "./swipers";
 import "./duotone";
+
+swipers();

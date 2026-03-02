@@ -3,12 +3,27 @@
 namespace Tim\Theme\Blocks;
 
 
-add_action('init', __NAMESPACE__ . '\\tt_register_scf_blocks');
-
-function tt_register_scf_blocks()
+/**
+ * Register ACF blocks
+ * @return void
+ */
+function tt_register_acf_blocks()
 {
-    register_block_type(__DIR__ . '/../blocks/hero-home');
+
+    foreach ($blocks = new \DirectoryIterator(__DIR__ . '/../blocks') as $item) {
+        // Check if block.json file exists in each subfolder.
+        if (
+            $item->isDir() && !$item->isDot()
+            && file_exists($item->getPathname() . '/block.json')
+        ) {
+            // Register the block given the directory name within the blocks
+            // directory.
+            register_block_type($item->getPathname());
+        }
+    }
 }
+add_action('init', __NAMESPACE__ . '\\tt_register_acf_blocks');
+
 
 
 add_action('init', function () {

@@ -65,6 +65,41 @@ let theOnePalette = [
     [0.2502126273595796, 0.4944869655745202, 0.12072666102797791],
 ];
 
+let JelloPallette = [
+    [0.560539049346602, 0.9864698435111292, 0.38645530493669356],
+    [0.8577431517451919, 0.4984650834782164, 0.4540553783519765],
+    [0.6575545361771221, 0.5422192410994796, 0.7770584408187052],
+    [0.8953176745887077, 0.2602592985768819, 0.901397804388853],
+];
+
+let subtleGreenPalette = [
+    [0.5430468466082186, 0.8054894383891057, 0.905854080822762],
+    [0.03723558547599071, 0.857733825137916, 0.5273045927579048],
+    [0.07213040333266107, 0.9372620715767922, 0.12886619883214],
+    [0.9114378781698476, 0.48133011487593813, 0.7561542765802856],
+];
+
+let redBluePalette = [
+    [0.39600533784266967, 0.805711389655639, 0.2574576383024767],
+    [0.49719370733463164, 0.5695225781262432, 0.7078388027561454],
+    [0.6945821422927309, 0.20522295164288817, 0.04449050967178536],
+    [0.4782097912440668, 0.5974592252710419, 0.5998044534305499],
+];
+
+let soberPalette = [
+    [0.6364022765160221, 0.28305120714075427, 0.9544488946587469],
+    [0.5591799861460144, 0.1500699524000575, 0.7344666860264949],
+    [0.47462573017689913, 0.7796962258904715, 0.7086272207901448],
+    [0.6760415396415512, 0.4255560295413837, 0.09228198665102649],
+];
+
+let contrastGreenPalette = [
+    [0.5624587424664147, 0.38902895918785374, 0.7654389711061432],
+    [0.006206728996348221, 0.38179458200030936, 0.07924846551674813],
+    [0.6276043699506899, 0.9402749230183469, 0.95999596556732],
+    [0.3811634565722667, 0.8788430923225373, 0.44721092425406983],
+];
+
 document.addEventListener("DOMContentLoaded", function () {
     let container = document.getElementById("sketch-canvas");
     let containerWidth = container.clientWidth;
@@ -89,6 +124,13 @@ document.addEventListener("DOMContentLoaded", function () {
         // palette = newBluePalette; // Uncomment for a fixed palette
         // palette = orangeGreenPalette; // Uncomment for a fixed palette
         // palette = superSayanPalette; // Uncomment for a fixed palette
+        // palette = maybePalette; // Uncomment for a fixed palette
+        // palette = darkblueRedPalette; // Uncomment for a fixed palette
+        // palette = theOnePalette; // Uncomment for a fixed palette
+        // palette = JelloPallette; // Uncomment for a fixed palette
+        // palette = subtleGreenPalette; // Uncomment for a fixed palette
+        // palette = redBluePalette; // Uncomment for a fixed palette
+        // palette = soberPalette; // Uncomment for a fixed palette
 
         console.log("Palette colors:", palette);
 

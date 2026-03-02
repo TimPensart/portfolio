@@ -1,8 +1,10 @@
+@use "../base/variables.scss";
 @use "../base/reset.scss";
 @use "../base/base.scss";
 @use "../base/typography.scss";
 @use "../base/helpers.scss";
 
 @use "../components/part-header.scss";
+@use "../components/swiper-projects.scss";
 
 @use "../layouts/section.scss";
