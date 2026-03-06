@@ -7,7 +7,7 @@ const swipers = function () {
     const projectSwiper = new swiper(".swiper-projects", {
         modules: [Navigation, Keyboard],
         slidesPerView: 3,
-        spaceBetween: 100,
+        spaceBetween: 48,
         breakpoints: {
             768: {
                 slidesPerView: 2,

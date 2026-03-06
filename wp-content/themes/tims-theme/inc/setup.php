@@ -48,3 +48,18 @@ function allowed_tags_in_tinymce($settings)
     return $settings;
 }
 add_filter('tiny_mce_before_init', __NAMESPACE__ . '\\allowed_tags_in_tinymce');
+
+/**
+ * Insert header favicon
+ */
+function insert_favicon()
+{
+    $favicon_html = '<link rel="icon" type="image/png" href="/favicon-96x96.png" sizes="96x96" />
+<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+<link rel="shortcut icon" href="/favicon.ico" />
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+<link rel="manifest" href="/site.webmanifest" />';
+
+    echo $favicon_html;
+}
+add_action('wp_head', __NAMESPACE__ . '\\insert_favicon');

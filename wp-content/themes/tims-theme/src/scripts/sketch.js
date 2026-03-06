@@ -100,6 +100,13 @@ let contrastGreenPalette = [
     [0.3811634565722667, 0.8788430923225373, 0.44721092425406983],
 ];
 
+let darkblueGreenPalette = [
+    [0.2061734185127846, 0.14413212388004837, 0.4338820311879936],
+    [0.12075400085638022, 0.16757843629344615, 0.40374569333147936],
+    [0.274021356795885, 0.7001311152416252, 0.2829251787573168],
+    [0.8144467670210225, 0.8134542999776722, 0.5688374702015168],
+];
+
 document.addEventListener("DOMContentLoaded", function () {
     let container = document.getElementById("sketch-canvas");
     let containerWidth = container.clientWidth;
@@ -117,30 +124,16 @@ document.addEventListener("DOMContentLoaded", function () {
 
         plasmaShader = pg.createShader(vertShader, fragShader);
 
-        palette = makePalette4();
-        // palette = crazyRedPalette; // Uncomment for a fixed palette
-        // palette = underwaterSunsetPalette; // Uncomment for a fixed palette
-        // palette = RetroPalette; // Uncomment for a fixed palette
-        // palette = newBluePalette; // Uncomment for a fixed palette
-        // palette = orangeGreenPalette; // Uncomment for a fixed palette
-        // palette = superSayanPalette; // Uncomment for a fixed palette
-        // palette = maybePalette; // Uncomment for a fixed palette
-        // palette = darkblueRedPalette; // Uncomment for a fixed palette
-        // palette = theOnePalette; // Uncomment for a fixed palette
-        // palette = JelloPallette; // Uncomment for a fixed palette
-        // palette = subtleGreenPalette; // Uncomment for a fixed palette
-        // palette = redBluePalette; // Uncomment for a fixed palette
-        // palette = soberPalette; // Uncomment for a fixed palette
+        // palette = makePalette4();
+        palette = newBluePalette;
 
-        console.log("Palette colors:", palette);
+        // console.log("Palette colors:", palette);
 
-        // Expose palette getter globally
         window.getSketchPalette = function () {
             return palette;
         };
 
         plasmaShader.setUniform("u_noise_start", random(1000.0));
-        // Dispatch custom event to signal sketch is ready
         window.dispatchEvent(new Event("p5-ready"));
     };
 
@@ -150,7 +143,6 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 
     window.draw = function () {
-        // Update uniforms
         pg.shader(plasmaShader);
 
         plasmaShader.setUniform("u_resolution", [pg.width, pg.height]);
@@ -173,7 +165,6 @@ document.addEventListener("DOMContentLoaded", function () {
         image(pg, width / 2, height / 2, width, height);
     };
 
-    // ---------- Palette: returns 4 colors as vec3 (0..1) ----------
     function makePalette4() {
         const cols = [];
         for (let i = 0; i < 4; i++) {
@@ -189,7 +180,6 @@ document.addEventListener("DOMContentLoaded", function () {
         return cols;
     }
 
-    // ---------- p5-friendly vertex shader (IMPORTANT) ----------
     const vertShader = `
   precision mediump float;
 
@@ -207,7 +197,6 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 `;
 
-    // ---------- Fragment shader ----------
     const fragShader = `
   precision mediump float;
 
