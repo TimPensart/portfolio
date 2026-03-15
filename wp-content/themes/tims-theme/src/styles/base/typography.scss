@@ -1,3 +1,16 @@
-// body {
-//     font-family: Helvetica, sans-serif;
-// }
+:root {
+    h1,
+    h2,
+    h3,
+    h4,
+    h5,
+    h6 {
+        &:has(+ *) {
+            margin-bottom: 0.5em;
+        }
+    }
+
+    p:has(+ *) {
+        margin-bottom: 1.5em;
+    }
+}
