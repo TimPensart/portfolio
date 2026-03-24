@@ -21,7 +21,7 @@ function create_posttype(): void
             'show_in_nav_menus'     => true,
             'exclude_from_search'   => false,
             'rewrite'               => ['slug' => 'project'],
-            'supports'              => ['title', 'excerpt', 'thumbnail', 'editor', 'revisions'],
+            'supports'              => ['title', 'excerpt', 'thumbnail', 'revisions'],
             'menu_icon'             => 'dashicons-admin-post',
         ]
     );

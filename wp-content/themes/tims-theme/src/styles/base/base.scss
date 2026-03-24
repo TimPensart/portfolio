@@ -21,6 +21,8 @@ body {
     display: none;
 }
 
-img {
+img,
+picture {
     border-radius: 1rem;
+    overflow: clip;
 }

@@ -16,8 +16,8 @@ $my_block_template = array(
 
 
 ?>
-<div <?php echo get_block_wrapper_attributes(); ?>>
+<section <?php echo get_block_wrapper_attributes(); ?>>
     <div id="sketch-canvas"></div>
 
     <InnerBlocks template="<?php echo esc_attr(wp_json_encode($my_block_template)); ?>" />
-</div>
+</section>

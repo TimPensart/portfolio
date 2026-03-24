@@ -1,0 +1,16 @@
+{
+    "name": "tim/projects-grid",
+    "title": "Projects Grid",
+    "description": "A custom projects grid block.",
+    "style": ["file:./projects-grid.css"],
+    "category": "formatting",
+    "icon": "admin-comments",
+    "keywords": ["projects", "grid"],
+    "acf": {
+        "mode": "preview",
+        "renderTemplate": "projects-grid.php"
+    },
+    "supports": {
+        "anchor": true
+    }
+}
