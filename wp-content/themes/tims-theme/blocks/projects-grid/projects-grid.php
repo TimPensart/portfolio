@@ -8,7 +8,6 @@ use function Tim\Theme\Setup\setup;
     $project_query = new WP_Query([
         'post_type' => 'project',
         'posts_per_page' => -1,
-        'order' => 'ASC',
         'post_status' => 'publish',
     ]);
 

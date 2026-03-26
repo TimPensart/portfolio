@@ -6,7 +6,7 @@
     h5,
     h6 {
         &:has(+ *) {
-            margin-bottom: 0.5em;
+            margin-bottom: 0.25em;
         }
     }
 
