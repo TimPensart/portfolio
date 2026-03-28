@@ -8,12 +8,7 @@
     margin-block: 0;
 
     .acf-innerblocks-container {
-        display: flex;
-        gap: clamp(2.5rem, 6vw, 4rem);
-        align-items: center;
-        justify-content: center;
-        flex-wrap: wrap;
-
+        text-align: center;
         .wp-block-image img {
             object-fit: cover;
         }
