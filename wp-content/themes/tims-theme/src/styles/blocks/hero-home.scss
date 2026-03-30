@@ -9,8 +9,15 @@
 
     .acf-innerblocks-container {
         text-align: center;
-        .wp-block-image img {
+        .wp-block-site-logo img {
+            width: 160px;
+            margin-bottom: 2rem;
+            height: auto;
             object-fit: cover;
+        }
+
+        * {
+            margin-inline: auto;
         }
     }
 

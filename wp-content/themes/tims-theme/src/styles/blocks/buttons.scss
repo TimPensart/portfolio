@@ -1,0 +1,23 @@
+.wp-block-button {
+    width: fit-content;
+    .wp-block-button__link {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: background-color 0.3s ease;
+        width: fit-content;
+        height: fit-content;
+
+        &:hover {
+            background-color: var(--wp--preset--color-primary-dark);
+        }
+
+        svg {
+            color: currentColor;
+            fill: currentColor;
+            display: block;
+            width: 1rem;
+            height: auto;
+        }
+    }
+}

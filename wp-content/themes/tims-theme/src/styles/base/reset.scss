@@ -15,6 +15,6 @@
     font: inherit;
 }
 
-:where(img, picture, video, canvas, svg) {
+:where(img, picture, video, canvas) {
     display: block;
 }

@@ -17,7 +17,7 @@ use function Tim\Theme\Setup\setup;
                 <picture><?php echo get_the_post_thumbnail(get_the_ID(), 'large'); ?></picture>
             <?php endif; ?>
             <?php if (!empty(get_the_title())) : ?>
-                <h2 class="project-title"><?php echo get_the_title(); ?></h2>
+                <h3 class="project-title"><?php echo get_the_title(); ?></h3>
             <?php endif; ?>
         </a>
     <?php endwhile; ?>
