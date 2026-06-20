@@ -116,7 +116,7 @@
                 },
                 {
                     "fluid": {
-                        "max": "2.5rem",
+                        "max": "3.2rem",
                         "min": "1.75rem"
                     },
                     "name": "Extra Large",
@@ -125,11 +125,11 @@
                 },
                 {
                     "fluid": {
-                        "max": "6rem",
+                        "max": "4.8rem",
                         "min": "2.15rem"
                     },
                     "name": "Extra Extra Large",
-                    "size": "3rem",
+                    "size": "2.5rem",
                     "slug": "xx-large"
                 }
             ],
@@ -212,7 +212,7 @@
             "heading": {
                 "typography": {
                     "fontFamily": "var:preset|font-family|delight",
-                    "fontWeight": "400",
+                    "fontWeight": "600",
                     "lineHeight": "1",
                     "letterSpacing": "-0.1px"
                 }

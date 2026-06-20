@@ -8,16 +8,11 @@
     margin-block: 0;
 
     .acf-innerblocks-container {
-        text-align: center;
         .wp-block-site-logo img {
             width: 160px;
             margin-bottom: 2rem;
             height: auto;
             object-fit: cover;
-        }
-
-        * {
-            margin-inline: auto;
         }
     }
 
@@ -30,12 +25,4 @@
         pointer-events: none;
         filter: brightness(0.5);
     }
-
-    // &:after {
-    //     content: "";
-    //     position: absolute;
-    //     inset: 0;
-    //     background: linear-gradient(to bottom, transparent, var(--wp--preset--color--black));
-    //     z-index: -1;
-    // }
 }

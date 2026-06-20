@@ -35,4 +35,13 @@ add_action('init', function () {
             'inline_style' => '.wp-block-group.is-style-light-bg { background-color: var(--wp--preset--color--white); color: var(--wp--preset--color--black);  } section.wp-block-group.is-style-light-bg { padding-block: clamp(3rem, 8vw, 8rem); margin-block: 0; }',
         ]
     );
+
+    register_block_style(
+        'core/columns',
+        [
+            'name'  => 'justify-space-between',
+            'label' => __('Justify Space Between', 'tims-theme'),
+            'inline_style' => '.wp-block-columns.is-style-justify-space-between { justify-content: space-between; }',
+        ]
+    );
 });

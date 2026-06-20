@@ -12,7 +12,7 @@ use function Tim\Theme\Setup\setup;
     ]);
 
     while ($project_query->have_posts()) : $project_query->the_post(); ?>
-        <a href="<?php echo get_field('website_url', get_the_ID()) ?: ''; ?>" class="card-project">
+        <a href="<?php echo get_field('website_url', get_the_ID()) ?: ''; ?>" target="_blank" class="card-project">
             <?php if (has_post_thumbnail()) : ?>
                 <picture><?php echo get_the_post_thumbnail(get_the_ID(), 'large'); ?></picture>
             <?php endif; ?>
