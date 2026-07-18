@@ -1,18 +1,34 @@
+@property --my-color-1 {
+    syntax: "<color>";
+    initial-value: rgba(0, 0, 0, 1);
+    inherits: false;
+}
+
 .wp-block-tim-hero-home {
     width: 100%;
-    height: clamp(600px, 80vh, 1000px);
+    height: clamp(600px, 95vh, 1400px);
     position: relative;
-    display: flex;
-    align-items: center;
-    justify-content: center;
     margin-block: 0;
 
     .acf-innerblocks-container {
-        .wp-block-site-logo img {
-            width: 160px;
-            margin-bottom: 2rem;
-            height: auto;
-            object-fit: cover;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+
+        > .wp-block-group:first-child {
+            margin-block: auto;
+            padding-top: 5rem;
+
+            img {
+                mask-image: linear-gradient(to bottom, var(--my-color-1) 50%, rgba(0, 0, 0, 0) 100%);
+                transition: --my-color-1 0.3s ease-in-out;
+
+                &:hover {
+                    --my-color-1: rgba(255, 255, 255, 0.5);
+                }
+            }
         }
     }
 

@@ -107,6 +107,13 @@ let darkblueGreenPalette = [
     [0.8144467670210225, 0.8134542999776722, 0.5688374702015168],
 ];
 
+let customPalette = [
+    [1, 1, 0],
+    [0, 0, 1],
+    [1, 0.5, 0],
+    [0, 0, 0],
+];
+
 document.addEventListener("DOMContentLoaded", function () {
     let container = document.getElementById("sketch-canvas");
     let containerWidth = container.clientWidth;
@@ -125,7 +132,7 @@ document.addEventListener("DOMContentLoaded", function () {
         plasmaShader = pg.createShader(vertShader, fragShader);
 
         // palette = makePalette4();
-        palette = newBluePalette;
+        palette = RetroPalette;
 
         // console.log("Palette colors:", palette);
 

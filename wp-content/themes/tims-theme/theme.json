@@ -41,7 +41,7 @@
             ]
         },
         "layout": {
-            "contentSize": "1200px",
+            "contentSize": "900px",
             "wideSize": "1200px"
         },
         "spacing": {
@@ -159,7 +159,7 @@
         "typography": {
             "fontFamily": "Segoe UI, Helvetica, sans-serif",
             "fontWeight": "400",
-            "lineHeight": "1.4"
+            "lineHeight": "1.5"
         },
         "spacing": {
             "blockGap": "0",
