@@ -1,12 +1,46 @@
 let pg;
 let plasmaShader;
-let palette;
+let updateShader;
 
-let crazyRedPalette = [
-    [0.6572554443740329, 0.4476547954104405, 0.7761135870422585],
-    [0.5405717602354713, 0.42199671358505486, 0.30864789182984936],
-    [0.9378873137824795, 0.3613809344788844, 0.2563355307991481],
-    [0.49127296725085057, 0.9191511010896141, 0.7797569484611355],
+// Ping-pong float framebuffers holding the persistent fluid displacement field.
+let fieldA;
+let fieldB;
+let usingA = true;
+
+// Resolved palette in OKLab (fed to the shader) + an sRGB mirror (for getSketchPalette).
+let palette; // [[L,a,b], ...] x4
+let paletteSrgb; // [[r,g,b], ...] x4 in 0..1 sRGB
+
+// -----------------------------------------------------------------------------
+// Palettes
+//
+// A palette is any array of 4 colors. Each color may be written in ANY of these
+// formats — mix and match freely:
+//
+//   "#ff8800", "#f80"                    hex (3/4/6/8 digits, alpha ignored)
+//   "rgb(255 136 0)"  "rgba(255,136,0,.5)"
+//   "hsl(28 100% 50%)"  "hsla(28,100%,50%,.5)"
+//   "oklch(0.72 0.17 55)"                perceptual lightness / chroma / hue
+//   "oklab(0.72 0.11 0.12)"
+//   [0.6, 0.45, 0.1]                     legacy: raw sRGB triplet in 0..1
+//
+// Colors are converted to OKLab once and interpolated perceptually in the
+// shader, so gradients stay vivid and never wash out through muddy midtones.
+// -----------------------------------------------------------------------------
+
+// Example showcasing the new string formats — try `activePalette = sunsetGlow`.
+let sunsetGlow = [
+    "oklch(0.82 0.15 85)", // warm gold
+    "oklch(0.68 0.20 25)", // coral red
+    "hsl(320 70% 45%)", // magenta
+    "#1b1033", // deep indigo
+];
+
+let RetroPalette = [
+    [0.29255937727810205, 0.43708183588560967, 0.5848093407869466],
+    [0.22384662799633576, 0.3318809023751755, 0.5398510285066969],
+    [0.8422083534102198, 0.31754774740194075, 0.25162490510829755],
+    [0.1802155362151303, 0.8808677018603622, 0.22822413768144434],
 ];
 
 let underwaterSunsetPalette = [
@@ -16,11 +50,11 @@ let underwaterSunsetPalette = [
     [0.17981604392651623, 0.4713242404223351, 0.39603054282405953],
 ];
 
-let RetroPalette = [
-    [0.29255937727810205, 0.43708183588560967, 0.5848093407869466],
-    [0.22384662799633576, 0.3318809023751755, 0.5398510285066969],
-    [0.8422083534102198, 0.31754774740194075, 0.25162490510829755],
-    [0.1802155362151303, 0.8808677018603622, 0.22822413768144434],
+let crazyRedPalette = [
+    [0.6572554443740329, 0.4476547954104405, 0.7761135870422585],
+    [0.5405717602354713, 0.42199671358505486, 0.30864789182984936],
+    [0.9378873137824795, 0.3613809344788844, 0.2563355307991481],
+    [0.49127296725085057, 0.9191511010896141, 0.7797569484611355],
 ];
 
 let newBluePalette = [
@@ -114,10 +148,162 @@ let customPalette = [
     [0, 0, 0],
 ];
 
+// Swap this to change the active palette.
+let activePalette = RetroPalette;
+
+// -----------------------------------------------------------------------------
+// Color pipeline: any CSS-ish string / legacy triplet -> OKLab.
+//
+// We keep OKLab as the canonical form because the shader interpolates in it.
+// sRGB inputs travel sRGB -> linear -> OKLab; oklab()/oklch() inputs go straight
+// in. getSketchPalette() converts back to displayable sRGB.
+// -----------------------------------------------------------------------------
+
+const clamp01 = (x) => Math.min(1, Math.max(0, x));
+
+function srgbToLinear(c) {
+    return c <= 0.04045 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4);
+}
+
+function linearToSrgb(c) {
+    return c <= 0.0031308 ? 12.92 * c : 1.055 * Math.pow(c, 1 / 2.4) - 0.055;
+}
+
+function linearSrgbToOklab([r, g, b]) {
+    const l = 0.4122214708 * r + 0.5363325363 * g + 0.0514459929 * b;
+    const m = 0.2119034982 * r + 0.6806995451 * g + 0.1073969566 * b;
+    const s = 0.0883024619 * r + 0.2817188376 * g + 0.6299787005 * b;
+
+    const l_ = Math.cbrt(l);
+    const m_ = Math.cbrt(m);
+    const s_ = Math.cbrt(s);
+
+    return [0.2104542553 * l_ + 0.793617785 * m_ - 0.0040720468 * s_, 1.9779984951 * l_ - 2.428592205 * m_ + 0.4505937099 * s_, 0.0259040371 * l_ + 0.7827717662 * m_ - 0.808675766 * s_];
+}
+
+function oklabToLinearSrgb([L, a, b]) {
+    const l_ = L + 0.3963377774 * a + 0.2158037573 * b;
+    const m_ = L - 0.1055613458 * a - 0.0638541728 * b;
+    const s_ = L - 0.0894841775 * a - 1.291485548 * b;
+
+    const l = l_ * l_ * l_;
+    const m = m_ * m_ * m_;
+    const s = s_ * s_ * s_;
+
+    return [4.0767416621 * l - 3.3077115913 * m + 0.2309699292 * s, -1.2684380046 * l + 2.6097574011 * m - 0.3413193965 * s, -0.0041960863 * l - 0.7034186147 * m + 1.707614701 * s];
+}
+
+function srgbToOklab([r, g, b]) {
+    return linearSrgbToOklab([srgbToLinear(r), srgbToLinear(g), srgbToLinear(b)]);
+}
+
+function oklabToSrgb(lab) {
+    return oklabToLinearSrgb(lab).map((c) => clamp01(linearToSrgb(clamp01(c))));
+}
+
+function hslToSrgb(h, s, l) {
+    h = (((h % 360) + 360) % 360) / 360;
+    if (s === 0) return [l, l, l];
+    const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
+    const p = 2 * l - q;
+    const hue = (tc) => {
+        tc = ((tc % 1) + 1) % 1;
+        if (tc < 1 / 6) return p + (q - p) * 6 * tc;
+        if (tc < 1 / 2) return q;
+        if (tc < 2 / 3) return p + (q - p) * (2 / 3 - tc) * 6;
+        return p;
+    };
+    return [hue(h + 1 / 3), hue(h), hue(h - 1 / 3)];
+}
+
+function oklchToOklab(L, C, hDeg) {
+    const h = (hDeg * Math.PI) / 180;
+    return [L, C * Math.cos(h), C * Math.sin(h)];
+}
+
+// Split "fn(a b c / d)" or "fn(a, b, c, d)" into component tokens.
+function colorComponents(str) {
+    const inner = str.slice(str.indexOf("(") + 1, str.lastIndexOf(")"));
+    return inner.split(/[\s,/]+/).filter(Boolean);
+}
+
+// Percent-aware number: "50%" -> 0.5, "128" -> 128.
+function numToken(tok) {
+    if (tok.endsWith("%")) return { v: parseFloat(tok) / 100, pct: true };
+    return { v: parseFloat(tok), pct: false };
+}
+
+// Parse anything we accept into OKLab.
+function parseColor(input) {
+    if (Array.isArray(input)) return srgbToOklab(input.map(clamp01));
+    if (typeof input !== "string") throw new Error("Unsupported color: " + input);
+
+    const s = input.trim().toLowerCase();
+
+    if (s[0] === "#") {
+        let hex = s.slice(1);
+        if (hex.length === 3 || hex.length === 4) {
+            hex = hex
+                .split("")
+                .map((ch) => ch + ch)
+                .join("");
+        }
+        const r = parseInt(hex.slice(0, 2), 16) / 255;
+        const g = parseInt(hex.slice(2, 4), 16) / 255;
+        const b = parseInt(hex.slice(4, 6), 16) / 255;
+        return srgbToOklab([r, g, b]);
+    }
+
+    const fn = s.slice(0, s.indexOf("("));
+    const parts = colorComponents(s);
+
+    switch (fn) {
+        case "rgb":
+        case "rgba": {
+            const rgb = parts.slice(0, 3).map((tok) => {
+                const { v, pct } = numToken(tok);
+                return clamp01(pct ? v : v / 255);
+            });
+            return srgbToOklab(rgb);
+        }
+        case "hsl":
+        case "hsla": {
+            const h = parseFloat(parts[0]);
+            const sat = numToken(parts[1]).v;
+            const light = numToken(parts[2]).v;
+            return srgbToOklab(hslToSrgb(h, sat, light));
+        }
+        case "oklab": {
+            const L = numToken(parts[0]).v;
+            return [L, parseFloat(parts[1]), parseFloat(parts[2])];
+        }
+        case "oklch": {
+            const L = numToken(parts[0]).v;
+            return oklchToOklab(L, parseFloat(parts[1]), parseFloat(parts[2]));
+        }
+        default:
+            throw new Error("Unsupported color format: " + input);
+    }
+}
+
+function resolvePalette(pal) {
+    if (!Array.isArray(pal) || pal.length < 4) {
+        throw new Error("A palette must contain 4 colors");
+    }
+    return pal.slice(0, 4).map(parseColor);
+}
+
 document.addEventListener("DOMContentLoaded", function () {
     let container = document.getElementById("sketch-canvas");
     let containerWidth = container.clientWidth;
     let containerHeight = container.clientHeight;
+
+    // Smoothed pointer state (UV space, 0..1) + motion + interaction level.
+    let mouseUV = [0.5, 0.5]; // eased influence center
+    let prevTarget = [0.5, 0.5]; // last raw cursor position (for velocity)
+    let mouseVel = [0.0, 0.0]; // smoothed pointer velocity (UV/frame)
+    let mouseIntensity = 0.0;
+    let pointerActive = false;
 
     window.setup = function () {
         createCanvas(containerWidth, containerHeight).parent("sketch-canvas");
@@ -130,28 +316,118 @@ document.addEventListener("DOMContentLoaded", function () {
         pg.noStroke();
 
         plasmaShader = pg.createShader(vertShader, fragShader);
+        updateShader = pg.createShader(vertShader, updateFragShader);
 
-        // palette = makePalette4();
-        palette = RetroPalette;
+        // Half-float framebuffers so displacement can accumulate without
+        // banding. HALF_FLOAT is linear-filterable in WebGL2 everywhere (unlike
+        // 32-bit FLOAT), and 16-bit precision is ample for a bounded field.
+        // No width/height -> they auto-track the graphics size on resize.
+        const fboOpts = { format: HALF_FLOAT, depth: false, antialias: false };
+        fieldA = pg.createFramebuffer(fboOpts);
+        fieldB = pg.createFramebuffer(fboOpts);
+        clearField(fieldA);
+        clearField(fieldB);
+        usingA = true;
 
-        // console.log("Palette colors:", palette);
+        palette = resolvePalette(activePalette);
+        paletteSrgb = palette.map(oklabToSrgb);
 
+        // Returns the active palette as displayable sRGB triplets (0..1).
         window.getSketchPalette = function () {
-            return palette;
+            return paletteSrgb;
         };
 
         plasmaShader.setUniform("u_noise_start", random(1000.0));
         window.dispatchEvent(new Event("p5-ready"));
     };
 
+    // Track the pointer only once it has actually entered the canvas, so the
+    // effect doesn't fire at (0,0) before the user has moved the mouse.
+    window.mouseMoved = function () {
+        const inside = mouseX >= 0 && mouseX <= width && mouseY >= 0 && mouseY <= height;
+        if (inside && !pointerActive) {
+            // Seed positions on entry so the first frame isn't a velocity spike.
+            prevTarget[0] = mouseX / width;
+            prevTarget[1] = mouseY / height;
+            mouseUV[0] = prevTarget[0];
+            mouseUV[1] = prevTarget[1];
+            mouseVel[0] = 0.0;
+            mouseVel[1] = 0.0;
+        }
+        pointerActive = inside;
+    };
+    window.mouseDragged = window.mouseMoved;
+
     window.addEventListener("resize", function () {
-        const container = document.getElementById("sketch-canvas");
-        resizeCanvas(container.clientWidth, container.clientHeight);
+        const el = document.getElementById("sketch-canvas");
+        resizeCanvas(el.clientWidth, el.clientHeight);
+        if (pg) pg.resizeCanvas(el.clientWidth, el.clientHeight);
+        // Framebuffers auto-resize with pg; reset the displacement field.
+        clearField(fieldA);
+        clearField(fieldB);
     });
 
-    window.draw = function () {
-        pg.shader(plasmaShader);
+    // Zero out a displacement framebuffer.
+    function clearField(fb) {
+        if (!fb) return;
+        fb.begin();
+        pg.clear();
+        fb.end();
+    }
 
+    function updatePointer() {
+        const inside = pointerActive && mouseX >= 0 && mouseX <= width && mouseY >= 0 && mouseY <= height;
+
+        if (inside) {
+            const tx = mouseX / width;
+            const ty = mouseY / height; // canvas UV matches p5's vTexCoord (y down)
+
+            // Smoothed pointer velocity — this drives the fluid advection.
+            const vx = tx - prevTarget[0];
+            const vy = ty - prevTarget[1];
+            mouseVel[0] += (vx - mouseVel[0]) * 0.25;
+            mouseVel[1] += (vy - mouseVel[1]) * 0.25;
+            prevTarget[0] = tx;
+            prevTarget[1] = ty;
+
+            // Ease the influence center toward the cursor for a trailing follow.
+            mouseUV[0] += (tx - mouseUV[0]) * 0.18;
+            mouseUV[1] += (ty - mouseUV[1]) * 0.18;
+        } else {
+            pointerActive = false;
+            // Let the flow coast to a stop after the pointer leaves.
+            mouseVel[0] *= 0.9;
+            mouseVel[1] *= 0.9;
+        }
+
+        // Ramp interaction up on hover (extra on press), fade out when it leaves.
+        const target = inside ? (mouseIsPressed ? 1.0 : 0.85) : 0.0;
+        mouseIntensity += (target - mouseIntensity) * 0.07;
+    }
+
+    window.draw = function () {
+        updatePointer();
+
+        const src = usingA ? fieldA : fieldB;
+        const dst = usingA ? fieldB : fieldA;
+
+        // -------- Pass 1: advance the persistent displacement field --------
+        // Read the previous field (src), inject flow along the cursor's motion,
+        // and write the accumulated result into dst.
+        dst.begin();
+        pg.shader(updateShader);
+        updateShader.setUniform("u_prev", src);
+        updateShader.setUniform("u_resolution", [pg.width, pg.height]);
+        updateShader.setUniform("u_mouse", mouseUV);
+        updateShader.setUniform("u_mouse_vel", mouseVel);
+        updateShader.setUniform("u_mouse_intensity", mouseIntensity);
+        pg.rect(-pg.width / 2, -pg.height / 2, pg.width, pg.height);
+        dst.end();
+
+        usingA = !usingA;
+
+        // -------- Pass 2: render the plasma, warping by the field --------
+        pg.shader(plasmaShader);
         plasmaShader.setUniform("u_resolution", [pg.width, pg.height]);
         plasmaShader.setUniform("u_time", millis() / 1000.0);
 
@@ -164,6 +440,8 @@ document.addEventListener("DOMContentLoaded", function () {
         plasmaShader.setUniform("u_warp", 0.9);
         plasmaShader.setUniform("u_speed", 0.4);
 
+        plasmaShader.setUniform("u_field", dst);
+
         // Draw full buffer (WEBGL origin is center)
         pg.rect(-pg.width / 2, -pg.height / 2, pg.width, pg.height);
 
@@ -171,21 +449,6 @@ document.addEventListener("DOMContentLoaded", function () {
         background(0);
         image(pg, width / 2, height / 2, width, height);
     };
-
-    function makePalette4() {
-        const cols = [];
-        for (let i = 0; i < 4; i++) {
-            let a = random(0.0, 1.0);
-            let b = random(0.0, 1.0);
-            let c = random(0.0, 1.0);
-            const arr = [a, b, c];
-            shuffle(arr, true);
-            cols.push(arr);
-        }
-        shuffle(cols, true);
-
-        return cols;
-    }
 
     const vertShader = `
   precision mediump float;
@@ -205,11 +468,12 @@ document.addEventListener("DOMContentLoaded", function () {
 `;
 
     const fragShader = `
-  precision mediump float;
+  precision highp float;
 
   uniform vec2  u_resolution;
   uniform float u_time;
 
+  // Palette colors arrive as OKLab (L, a, b) and are mixed perceptually.
   uniform vec3 u_col1;
   uniform vec3 u_col2;
   uniform vec3 u_col3;
@@ -219,6 +483,10 @@ document.addEventListener("DOMContentLoaded", function () {
   uniform float u_warp;
   uniform float u_speed;
   uniform float u_noise_start;
+
+  // Persistent fluid displacement field (RG = domain offset), updated each
+  // frame by the cursor and read here as a permanent input to the noise domain.
+  uniform sampler2D u_field;
 
   varying vec2 vTexCoord;
 
@@ -237,6 +505,32 @@ document.addEventListener("DOMContentLoaded", function () {
     return mix(a, b, u.x) + (c - a) * u.y * (1.0 - u.x) + (d - b) * u.x * u.y;
   }
 
+  // OKLab -> linear sRGB (Bjorn Ottosson).
+  vec3 oklabToLinear(vec3 c){
+    float l_ = c.x + 0.3963377774 * c.y + 0.2158037573 * c.z;
+    float m_ = c.x - 0.1055613458 * c.y - 0.0638541728 * c.z;
+    float s_ = c.x - 0.0894841775 * c.y - 1.2914855480 * c.z;
+
+    float l = l_ * l_ * l_;
+    float m = m_ * m_ * m_;
+    float s = s_ * s_ * s_;
+
+    return vec3(
+       4.0767416621 * l - 3.3077115913 * m + 0.2309699292 * s,
+      -1.2684380046 * l + 2.6097574011 * m - 0.3413193965 * s,
+      -0.0041960863 * l - 0.7034186147 * m + 1.7076147010 * s
+    );
+  }
+
+  // Linear sRGB -> gamma-encoded sRGB.
+  vec3 linearToSrgb(vec3 c){
+    c = clamp(c, 0.0, 1.0);
+    vec3 lo = c * 12.92;
+    vec3 hi = 1.055 * pow(c, vec3(1.0 / 2.4)) - 0.055;
+    return mix(hi, lo, step(c, vec3(0.0031308)));
+  }
+
+  // Perceptual 4-stop gradient, interpolated in OKLab.
   vec3 pal(float t){
     t = clamp(t, 0.0, 1.0);
     float x = t * 3.0;
@@ -248,39 +542,100 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 
   void main() {
-    // 0..1 UV
     vec2 uv = vTexCoord;
 
-    // aspect-corrected centered coords
-    vec2 p = (uv - 0.5) * vec2(u_resolution.x / u_resolution.y, 1.0);
+    // Aspect-corrected centered coords.
+    float aspect = u_resolution.x / u_resolution.y;
+    vec2 p = (uv - 0.5) * vec2(aspect, 1.0);
 
     float t = u_time * u_speed;
 
-    // Gentle domain warp = thicker blobs
-    float w1 = noise(u_noise_start + p * (u_scale * 0.8) + vec2(t * 0.1, -t * 0.3));
-    float w2 = noise(u_noise_start + p * (u_scale * 0.8) + vec2(-t * 0.1, t * 0.45));
-    vec2 wp = p + (vec2(w1, w2) - 0.5) * u_warp;
+    // Persistent, mouse-driven fluid displacement of the noise domain. This
+    // has been accumulated over previous frames, so past cursor strokes remain
+    // baked into the field — the plasma keeps flowing through the channels the
+    // pointer carved out.
+    vec2 push = texture2D(u_field, uv).xy;
+
+    // -------- Domain-warped value noise --------
+    vec2 pp = p + push;
+    float w1 = noise(u_noise_start + pp * (u_scale * 0.8) + vec2(t * 0.1, -t * 0.3));
+    float w2 = noise(u_noise_start + pp * (u_scale * 0.8) + vec2(-t * 0.1, t * 0.45));
+    vec2 wp = pp + (vec2(w1, w2) - 0.5) * u_warp;
 
     float a = noise(u_noise_start + wp * (u_scale * 1.0) + t * 0.15);
     float b = noise(u_noise_start + wp * (u_scale * 1.8) + vec2(10.0, 20.0) + t * 0.25);
     float c = noise(u_noise_start + wp * (u_scale * 2.6) + vec2(-30.0, 5.0) + t * 0.35);
-    float e = 0.62*a + 0.26*b + 0.12*c;
+    float e = 0.62 * a + 0.26 * b + 0.12 * c;
 
     float k = noise(u_noise_start + wp * (u_scale * 0.6) + vec2(100.0, -100.0) + t * 0.08);
-    float mixT = clamp(0.6*e + 0.4*k, 0.0, 1.0);
+    float mixT = clamp(0.6 * e + 0.4 * k, 0.0, 1.0);
 
-    vec3 col = pal(mixT);
+    // Perceptual color, then to linear light for physically-plausible shading.
+    vec3 lin = oklabToLinear(pal(mixT));
 
-    // Shine
+    // Shine, applied in linear space.
     float shine = pow(clamp(e * 1.2, 0.0, 1.0), 2.2);
-    col *= mix(0.85, 1.35, shine);
-    col += vec3(0.10) * shine;
+    lin *= mix(0.9, 1.5, shine);
+    lin += vec3(0.06) * shine;
 
-    // Subtle vignette
-    float v = 1.0;
-    col *= v;
+    gl_FragColor = vec4(linearToSrgb(lin), 1.0);
+  }
+`;
 
-    gl_FragColor = vec4(col, 1.0);
+    // Field-update shader: evolves the persistent displacement field. Each frame
+    // it reads the previous field, injects flow along the cursor's motion, and
+    // writes the accumulated result back. Because the field persists between
+    // frames, the distortions the cursor makes stay after it has moved on.
+    const updateFragShader = `
+  precision highp float;
+
+  uniform sampler2D u_prev;          // previous displacement field (RG = offset)
+  uniform vec2  u_resolution;
+  uniform vec2  u_mouse;             // cursor in 0..1 UV space
+  uniform vec2  u_mouse_vel;         // smoothed cursor velocity (UV/frame)
+  uniform float u_mouse_intensity;   // 0 = idle, 1 = fully engaged
+
+  varying vec2 vTexCoord;
+
+  // --- Tunables -------------------------------------------------------------
+  const float INJECT_STRENGTH = 2.0;   // how hard the cursor pushes the fluid
+  const float INJECT_RADIUS   = 0.08;  // brush size (bigger = wider influence)
+  const float PERSIST         = 0.99;   // 1.0 = permanent; < 1 slowly fades out
+  const float DIFFUSE         = 0.19;  // smoothing / gentle spread each frame
+  const float MAX_LEN         = 3.0;   // clamp on accumulated displacement
+  // --------------------------------------------------------------------------
+
+  void main() {
+    vec2 uv = vTexCoord;
+    float aspect = u_resolution.x / u_resolution.y;
+    vec2 p = (uv - 0.5) * vec2(aspect, 1.0);
+    vec2 m = (u_mouse - 0.5) * vec2(aspect, 1.0);
+    vec2 vel = u_mouse_vel * vec2(aspect, 1.0);
+
+    // Previous accumulated displacement.
+    vec2 D = texture2D(u_prev, uv).xy;
+
+    // Gentle diffusion keeps the field smooth and lets it settle naturally.
+    vec2 texel = 1.0 / u_resolution;
+    vec2 blur = (
+        texture2D(u_prev, uv + vec2(texel.x, 0.0)).xy +
+        texture2D(u_prev, uv - vec2(texel.x, 0.0)).xy +
+        texture2D(u_prev, uv + vec2(0.0, texel.y)).xy +
+        texture2D(u_prev, uv - vec2(0.0, texel.y)).xy) * 0.25;
+    D = mix(D, blur, DIFFUSE);
+
+    // Inject flow along the pointer's motion near the cursor. This adds into
+    // the persistent field, so the stroke remains once the cursor has passed.
+    vec2 md = p - m;
+    float infl = u_mouse_intensity * exp(-dot(md, md) / INJECT_RADIUS);
+    D += -vel * infl * INJECT_STRENGTH;
+
+    // Persistence + magnitude clamp (keeps it bounded and stable).
+    D *= PERSIST;
+    float len = length(D);
+    if (len > MAX_LEN) D *= MAX_LEN / len;
+
+    gl_FragColor = vec4(D, 0.0, 1.0);
   }
 `;
 });
