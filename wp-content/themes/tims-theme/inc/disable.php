@@ -28,3 +28,13 @@ function overwrite_adminbar_styles()
         wp_enqueue_style('xpl-adminbar', Assets\asset_path('styles/admin/adminbar.css'), null, PROJECT_VERSION);
     }
 }
+
+add_filter('rest_endpoints', function ($endpoints) {
+    if (isset($endpoints['/wp/v2/users'])) {
+        unset($endpoints['/wp/v2/users']);
+    }
+    if (isset($endpoints['/wp/v2/users/(?P<id>[\d]+)'])) {
+        unset($endpoints['/wp/v2/users/(?P<id>[\d]+)']);
+    }
+    return $endpoints;
+});
