@@ -53,7 +53,7 @@ const ALLOW_UNFILTERED_UPLOADS = true;
 // =====================================================
 // Custom Content Directory
 // =====================================================
-const WP_CONTENT_URL = 'http://portfolio.local/wp-content';
+define('WP_CONTENT_URL', getenv('WP_HOME') . '/wp-content');
 define('WP_CONTENT_DIR', dirname(ABSPATH) . '/wp-content');
 
 // =====================================================
