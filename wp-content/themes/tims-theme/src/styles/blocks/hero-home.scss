@@ -6,28 +6,25 @@
 
 .wp-block-tim-hero-home {
     width: 100%;
-    height: clamp(600px, 95vh, 1400px);
+    min-height: clamp(600px, 95vh, 1400px);
     position: relative;
     margin-block: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
 
     .acf-innerblocks-container {
         height: 100%;
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        align-items: center;
 
         > .wp-block-group:first-child {
             margin-block: auto;
-            padding-top: 5rem;
+            padding-top: 7rem;
+            padding-bottom: 4rem;
 
             img {
-                mask-image: linear-gradient(to bottom, var(--my-color-1) 50%, rgba(0, 0, 0, 0) 100%);
+                mask-image: linear-gradient(to bottom, var(--my-color-1) 80%, rgba(0, 0, 0, 0) 100%);
                 transition: --my-color-1 0.3s ease-in-out;
-
-                &:hover {
-                    --my-color-1: rgba(255, 255, 255, 0.5);
-                }
             }
         }
     }
@@ -39,6 +36,5 @@
         position: absolute;
         z-index: -1;
         pointer-events: none;
-        filter: brightness(0.5);
     }
 }

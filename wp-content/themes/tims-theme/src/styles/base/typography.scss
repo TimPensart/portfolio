@@ -13,4 +13,8 @@
     p:has(+ *) {
         margin-bottom: 1.5em;
     }
+
+    a {
+        color: currentColor;
+    }
 }

@@ -36,6 +36,10 @@ let sunsetGlow = [
     "#1b1033", // deep indigo
 ];
 
+let mixedPalette = ["oklch(0.675892 0.21747 38.8022)", "oklch(0.7652 0.1752 62.57)", "oklch(0.452014 0.313214 264.052)", "oklch(0.942269 0.22156 119.0463)"];
+
+let blackWhitePalette = ["#050505", "#050505", "#423523", "#423523"];
+
 let RetroPalette = [
     [0.29255937727810205, 0.43708183588560967, 0.5848093407869466],
     [0.22384662799633576, 0.3318809023751755, 0.5398510285066969],
@@ -149,7 +153,7 @@ let customPalette = [
 ];
 
 // Swap this to change the active palette.
-let activePalette = RetroPalette;
+let activePalette = blackWhitePalette;
 
 // -----------------------------------------------------------------------------
 // Color pipeline: any CSS-ish string / legacy triplet -> OKLab.
@@ -305,6 +309,11 @@ document.addEventListener("DOMContentLoaded", function () {
     let mouseIntensity = 0.0;
     let pointerActive = false;
 
+    // Global noise pan: the whole field drifts in the direction the mouse moves,
+    // with momentum that eases out smoothly instead of stopping abruptly.
+    let flowVel = [0.0, 0.0]; // smoothed pan velocity (UV/frame)
+    let flowOffset = [0.0, 0.0]; // accumulated global offset applied to the noise
+
     window.setup = function () {
         createCanvas(containerWidth, containerHeight).parent("sketch-canvas");
         pixelDensity(1);
@@ -385,14 +394,14 @@ document.addEventListener("DOMContentLoaded", function () {
             // Smoothed pointer velocity — this drives the fluid advection.
             const vx = tx - prevTarget[0];
             const vy = ty - prevTarget[1];
-            mouseVel[0] += (vx - mouseVel[0]) * 0.25;
-            mouseVel[1] += (vy - mouseVel[1]) * 0.25;
+            mouseVel[0] += (vx - mouseVel[0]) * 0.05;
+            mouseVel[1] += (vy - mouseVel[1]) * 0.05;
             prevTarget[0] = tx;
             prevTarget[1] = ty;
 
             // Ease the influence center toward the cursor for a trailing follow.
-            mouseUV[0] += (tx - mouseUV[0]) * 0.18;
-            mouseUV[1] += (ty - mouseUV[1]) * 0.18;
+            mouseUV[0] += (tx - mouseUV[0]) * 0.1;
+            mouseUV[1] += (ty - mouseUV[1]) * 0.1;
         } else {
             pointerActive = false;
             // Let the flow coast to a stop after the pointer leaves.
@@ -403,6 +412,17 @@ document.addEventListener("DOMContentLoaded", function () {
         // Ramp interaction up on hover (extra on press), fade out when it leaves.
         const target = inside ? (mouseIsPressed ? 1.0 : 0.85) : 0.0;
         mouseIntensity += (target - mouseIntensity) * 0.07;
+
+        // Global pan: the pan velocity trails the mouse velocity and decays to
+        // zero once the pointer stops, so the whole noise field drifts in the
+        // direction you move and eases smoothly to a rest. The offset itself
+        // accumulates, leaving the field where it panned to.
+        const PAN_GAIN = 0.2; // how strongly mouse speed drives the pan
+        const PAN_LERP = 0.024; // smaller = smoother, longer ease-out
+        flowVel[0] += (mouseVel[0] * PAN_GAIN - flowVel[0]) * PAN_LERP;
+        flowVel[1] += (mouseVel[1] * PAN_GAIN - flowVel[1]) * PAN_LERP;
+        flowOffset[0] += flowVel[0];
+        flowOffset[1] += flowVel[1];
     }
 
     window.draw = function () {
@@ -436,11 +456,12 @@ document.addEventListener("DOMContentLoaded", function () {
         plasmaShader.setUniform("u_col3", palette[2]);
         plasmaShader.setUniform("u_col4", palette[3]);
 
-        plasmaShader.setUniform("u_scale", 2);
-        plasmaShader.setUniform("u_warp", 0.9);
-        plasmaShader.setUniform("u_speed", 0.4);
+        plasmaShader.setUniform("u_scale", 0.7);
+        plasmaShader.setUniform("u_warp", 12.0);
+        plasmaShader.setUniform("u_speed", 0.1);
 
         plasmaShader.setUniform("u_field", dst);
+        plasmaShader.setUniform("u_flow_offset", flowOffset);
 
         // Draw full buffer (WEBGL origin is center)
         pg.rect(-pg.width / 2, -pg.height / 2, pg.width, pg.height);
@@ -483,6 +504,9 @@ document.addEventListener("DOMContentLoaded", function () {
   uniform float u_warp;
   uniform float u_speed;
   uniform float u_noise_start;
+
+  // Global pan of the noise domain, driven by mouse motion (UV units).
+  uniform vec2 u_flow_offset;
 
   // Persistent fluid displacement field (RG = domain offset), updated each
   // frame by the cursor and read here as a permanent input to the noise domain.
@@ -556,8 +580,12 @@ document.addEventListener("DOMContentLoaded", function () {
     // pointer carved out.
     vec2 push = texture2D(u_field, uv).xy;
 
+    // Global pan: shift the whole noise domain so the field drifts in the
+    // direction the mouse moves (aspect-corrected to match p-space).
+    vec2 flow = u_flow_offset * vec2(aspect, 1.0);
+
     // -------- Domain-warped value noise --------
-    vec2 pp = p + push;
+    vec2 pp = p + push - flow;
     float w1 = noise(u_noise_start + pp * (u_scale * 0.8) + vec2(t * 0.1, -t * 0.3));
     float w2 = noise(u_noise_start + pp * (u_scale * 0.8) + vec2(-t * 0.1, t * 0.45));
     vec2 wp = pp + (vec2(w1, w2) - 0.5) * u_warp;

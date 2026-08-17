@@ -26,4 +26,8 @@ img,
 picture {
     border-radius: 1rem;
     overflow: clip;
+
+    @media (max-width: 768px) {
+        border-radius: 0.5rem;
+    }
 }

@@ -52,12 +52,14 @@ function textRevealAnimation() {
 function gridStaggerAnimation() {
     let gridItems = document.querySelectorAll(".wp-block-tim-projects-grid > a");
 
-    gridItems.forEach((item) => {
+    gridItems.forEach((item, index) => {
+        let twoColumnIndex = (index % Math.floor((gridItems.length - 1) / 2)) + (index / gridItems.length) * 2;
         gsap.from(item, {
             scrollTrigger: {
-                trigger: item,
+                trigger: ".wp-block-tim-projects-grid",
                 start: "top 80%",
             },
+            delay: twoColumnIndex * 0.2,
             duration: 0.8,
             ease: "power3.out",
             y: 100,

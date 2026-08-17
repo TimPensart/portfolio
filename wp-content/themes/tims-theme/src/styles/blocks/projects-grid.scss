@@ -2,6 +2,11 @@
     column-count: 2;
     --grid-gap: var(--wp--preset--spacing--40);
     column-gap: var(--grid-gap);
+    padding: var(--grid-gap);
+
+    @media (max-width: 768px) {
+        --grid-gap: 10px;
+    }
 
     .wp-block-heading + & {
         margin-top: var(--grid-gap);
