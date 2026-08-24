@@ -6,3 +6,11 @@
 .align-items-center {
     align-items: center !important;
 }
+
+.mobile-reverse {
+    @media (max-width: 768px) {
+        > :last-child {
+            order: -1;
+        }
+    }
+}

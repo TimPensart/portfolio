@@ -38,7 +38,7 @@ let sunsetGlow = [
 
 let mixedPalette = ["oklch(0.675892 0.21747 38.8022)", "oklch(0.7652 0.1752 62.57)", "oklch(0.452014 0.313214 264.052)", "oklch(0.942269 0.22156 119.0463)"];
 
-let blackWhitePalette = ["#050505", "#050505", "#423523", "#423523"];
+let blackWhitePalette = ["#050505", "#050505", "#3d2d00", "#2c3a3d"];
 
 let RetroPalette = [
     [0.29255937727810205, 0.43708183588560967, 0.5848093407869466],
@@ -302,6 +302,12 @@ document.addEventListener("DOMContentLoaded", function () {
     let containerWidth = container.clientWidth;
     let containerHeight = container.clientHeight;
 
+    // On mobile the WebGL shader pipeline renders with precision artifacts
+    // (streaks/boxes/layering). Instead of a shader, mobile gets a plain 2D p5
+    // sketch that paints a single static noise image in the same palette — no
+    // WEBGL, no framebuffers, no draw loop.
+    const isMobile = /Mobi|Android|iPhone|iPad|iPod|IEMobile|BlackBerry/i.test(navigator.userAgent) || (window.matchMedia && window.matchMedia("(pointer: coarse)").matches);
+
     // Smoothed pointer state (UV space, 0..1) + motion + interaction level.
     let mouseUV = [0.5, 0.5]; // eased influence center
     let prevTarget = [0.5, 0.5]; // last raw cursor position (for velocity)
@@ -314,11 +320,35 @@ document.addEventListener("DOMContentLoaded", function () {
     let flowVel = [0.0, 0.0]; // smoothed pan velocity (UV/frame)
     let flowOffset = [0.0, 0.0]; // accumulated global offset applied to the noise
 
+    // Mobile static-noise state: a fixed seed so the image is deterministic
+    // (never jumps), and the last width we rendered at so scroll-triggered
+    // resizes — which only change viewport height — are ignored.
+    let mobileNoiseSeed = 0;
+    let mobileWidth = containerWidth;
+
     window.setup = function () {
         createCanvas(containerWidth, containerHeight).parent("sketch-canvas");
         pixelDensity(1);
         imageMode(CENTER);
         noStroke();
+
+        palette = resolvePalette(activePalette);
+        paletteSrgb = palette.map(oklabToSrgb);
+
+        // Returns the active palette as displayable sRGB triplets (0..1).
+        window.getSketchPalette = function () {
+            return paletteSrgb;
+        };
+
+        // -------- Mobile: one static noise image, then stop --------
+        if (isMobile) {
+            mobileNoiseSeed = random(1000); // fixed once; render stays deterministic
+            mobileWidth = width;
+            drawStaticNoise();
+            noLoop(); // no animation, no draw loop
+            window.dispatchEvent(new Event("p5-ready"));
+            return;
+        }
 
         pg = createGraphics(width, height, WEBGL);
         pg.pixelDensity(1);
@@ -338,17 +368,69 @@ document.addEventListener("DOMContentLoaded", function () {
         clearField(fieldB);
         usingA = true;
 
-        palette = resolvePalette(activePalette);
-        paletteSrgb = palette.map(oklabToSrgb);
-
-        // Returns the active palette as displayable sRGB triplets (0..1).
-        window.getSketchPalette = function () {
-            return paletteSrgb;
-        };
-
         plasmaShader.setUniform("u_noise_start", random(1000.0));
         window.dispatchEvent(new Event("p5-ready"));
     };
+
+    // Perceptual 4-stop palette lookup (mirrors the shader's pal()): interpolate
+    // in OKLab, then convert to displayable sRGB (0..1). Used by the mobile path.
+    function palAt(t) {
+        t = Math.max(0, Math.min(1, t));
+        const x = t * 3.0;
+        const i = Math.floor(x);
+        let f = x - i;
+        f = f * f * (3.0 - 2.0 * f); // smoothstep
+        let c0, c1;
+        if (i < 1) {
+            c0 = palette[0];
+            c1 = palette[1];
+        } else if (i < 2) {
+            c0 = palette[1];
+            c1 = palette[2];
+        } else {
+            c0 = palette[2];
+            c1 = palette[3];
+        }
+        const lab = [c0[0] + (c1[0] - c0[0]) * f, c0[1] + (c1[1] - c0[1]) * f, c0[2] + (c1[2] - c0[2]) * f];
+        return oklabToSrgb(lab);
+    }
+
+    // Paint one static, soft noise image onto the 2D canvas. Rendered into a
+    // small low-res buffer and scaled up, which is both fast and gives the soft,
+    // cloud-like look without any shader.
+    function drawStaticNoise() {
+        background(0);
+
+        // Quarter-ish resolution buffer; the upscale smooths it into soft noise.
+        const bw = Math.max(2, Math.floor(width * 0.15));
+        const bh = Math.max(2, Math.floor(height * 0.15));
+        const buf = createGraphics(bw, bh);
+        buf.pixelDensity(1);
+        buf.loadPixels();
+
+        noiseDetail(4, 0.5); // a few octaves for gentle fractal detail
+        const off = mobileNoiseSeed; // fixed seed -> identical image every render
+        const aspect = bw / bh;
+        const freq = 1.0; // noise cells across the buffer
+
+        for (let y = 0; y < bh; y++) {
+            for (let x = 0; x < bw; x++) {
+                const n = noise(off + (x / bw) * freq * aspect, off + (y / bh) * freq);
+                // Mild contrast expansion so the palette spans a fuller range.
+                const t = Math.max(0, Math.min(1, (n - 0.5) * 1.8 + 0.5));
+                const col = palAt(t);
+                const idx = 4 * (y * bw + x);
+                buf.pixels[idx] = col[0] * 255;
+                buf.pixels[idx + 1] = col[1] * 255;
+                buf.pixels[idx + 2] = col[2] * 255;
+                buf.pixels[idx + 3] = 255;
+            }
+        }
+        buf.updatePixels();
+
+        image(buf, width / 2, height / 2, width, height); // imageMode(CENTER)
+        buf.remove();
+    }
 
     // Track the pointer only once it has actually entered the canvas, so the
     // effect doesn't fire at (0,0) before the user has moved the mouse.
@@ -369,6 +451,19 @@ document.addEventListener("DOMContentLoaded", function () {
 
     window.addEventListener("resize", function () {
         const el = document.getElementById("sketch-canvas");
+
+        // Mobile: scrolling makes the address bar show/hide, which fires resize
+        // with a changed *height* only. Ignore those so the static noise never
+        // re-renders (and never jumps) while scrolling. Only a real width change
+        // (e.g. orientation) re-renders, reusing the same fixed seed.
+        if (isMobile) {
+            if (el.clientWidth === mobileWidth) return;
+            mobileWidth = el.clientWidth;
+            resizeCanvas(el.clientWidth, el.clientHeight);
+            drawStaticNoise();
+            return;
+        }
+
         resizeCanvas(el.clientWidth, el.clientHeight);
         if (pg) pg.resizeCanvas(el.clientWidth, el.clientHeight);
         // Framebuffers auto-resize with pg; reset the displacement field.
@@ -426,6 +521,8 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     window.draw = function () {
+        if (isMobile) return; // mobile renders once in setup()
+
         updatePointer();
 
         const src = usingA ? fieldA : fieldB;

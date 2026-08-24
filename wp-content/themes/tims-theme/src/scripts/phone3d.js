@@ -19,9 +19,17 @@ export default function Render3dPhone(parentElement, sceneModel) {
     let mouseY = 0;
 
     // Touch devices have no usable mouse position, so we tilt the phone from
-    // the phone's scroll progress through the viewport instead (see observer).
+    // the phone's scroll progress through the viewport instead (see animate()).
     const isTouch = window.matchMedia("(pointer: coarse)").matches;
-    let scrollProgress = 0; // 0 → 1 as the phone travels up through the viewport
+
+    // 0 when the phone's top hits the bottom of the viewport, 1 when its bottom
+    // clears the top. Sampled once per rendered frame so it stays in sync with
+    // scrolling instead of jumping between IntersectionObserver callbacks.
+    function computeScrollProgress() {
+        const rect = parentElement.getBoundingClientRect();
+        const vh = window.innerHeight;
+        return Math.min(Math.max((vh - rect.top) / (vh + rect.height), 0), 1);
+    }
 
     // Add or remove wallpaper configs here. Each one is fully independent:
     // its own trigger offset, its own animating state, its own targets.
@@ -127,7 +135,15 @@ export default function Render3dPhone(parentElement, sceneModel) {
     renderer.shadowMap.enabled = true;
     renderer.shadowMap.type = THREE.VSMShadowMap; // supports a real, adjustable blur radius
 
+    // Match the device's pixel density so the phone stays sharp on hi-DPR
+    // (mobile/retina) screens. Capped at 2 to avoid overdrawing on phones
+    // that report a DPR of 3+ and tanking the framerate for no visible gain.
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     renderer.setSize(parentElement.clientWidth, parentElement.clientHeight);
+
+    // Let vertical page scrolling pass through the canvas. Without this the
+    // WebGL canvas swallows touch-drags and the page gets "stuck" on mobile.
+    renderer.domElement.style.touchAction = "pan-y";
 
     parentElement.appendChild(renderer.domElement);
 
@@ -155,8 +171,8 @@ export default function Render3dPhone(parentElement, sceneModel) {
         animationFrameId = requestAnimationFrame(animate);
         if (!object) return;
         if (isTouch) {
-            object.rotation.x = (scrollProgress - 0.5) * -2;
-            object.rotation.y = Math.PI;
+            object.rotation.x = (computeScrollProgress() - 0.5) * -3;
+            object.rotation.y = Math.PI + (computeScrollProgress() - 0.5) * 2;
         } else {
             object.rotation.x = (mouseY / window.innerHeight) * rotateSpeed;
             object.rotation.y = (Math.PI + mouseX / window.innerWidth) * rotateSpeed;
@@ -211,6 +227,8 @@ export default function Render3dPhone(parentElement, sceneModel) {
         }
     }
 
+    // Only run the render loop while the phone is on screen. rotation.x itself
+    // is driven from computeScrollProgress() inside animate(), not from here.
     const observer = new IntersectionObserver(
         (entries) => {
             entries.forEach((entry) => {
@@ -219,15 +237,9 @@ export default function Render3dPhone(parentElement, sceneModel) {
                 } else {
                     stopAnimation();
                 }
-
-                // 0 when the phone's top hits the bottom of the viewport,
-                // 1 when its bottom clears the top. Drives rotation.x on touch.
-                const rect = entry.boundingClientRect;
-                const vh = window.innerHeight;
-                scrollProgress = Math.min(Math.max((vh - rect.top) / (vh + rect.height), 0), 1);
             });
         },
-        { threshold: Array.from({ length: 101 }, (_, i) => i / 100) }
+        { threshold: 0 }
     );
 
     observer.observe(parentElement);
@@ -235,6 +247,7 @@ export default function Render3dPhone(parentElement, sceneModel) {
     window.addEventListener("resize", function () {
         camera.aspect = parentElement.clientWidth / parentElement.clientHeight;
         camera.updateProjectionMatrix();
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
         renderer.setSize(parentElement.clientWidth, parentElement.clientHeight);
     });
 
