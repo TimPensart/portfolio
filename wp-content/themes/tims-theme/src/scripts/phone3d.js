@@ -18,6 +18,11 @@ export default function Render3dPhone(parentElement, sceneModel) {
     let mouseX = 0;
     let mouseY = 0;
 
+    // Touch devices have no usable mouse position, so we tilt the phone from
+    // the phone's scroll progress through the viewport instead (see observer).
+    const isTouch = window.matchMedia("(pointer: coarse)").matches;
+    let scrollProgress = 0; // 0 → 1 as the phone travels up through the viewport
+
     // Add or remove wallpaper configs here. Each one is fully independent:
     // its own trigger offset, its own animating state, its own targets.
     let wallpapers = [
@@ -149,8 +154,13 @@ export default function Render3dPhone(parentElement, sceneModel) {
     function animate() {
         animationFrameId = requestAnimationFrame(animate);
         if (!object) return;
-        object.rotation.x = (mouseY / window.innerHeight) * rotateSpeed;
-        object.rotation.y = (Math.PI + mouseX / window.innerWidth) * rotateSpeed;
+        if (isTouch) {
+            object.rotation.x = (scrollProgress - 0.5) * -2;
+            object.rotation.y = Math.PI;
+        } else {
+            object.rotation.x = (mouseY / window.innerHeight) * rotateSpeed;
+            object.rotation.y = (Math.PI + mouseX / window.innerWidth) * rotateSpeed;
+        }
 
         wallpapers.forEach((wallpaper) => {
             if (wallpaper.material === undefined) return;
@@ -206,13 +216,18 @@ export default function Render3dPhone(parentElement, sceneModel) {
             entries.forEach((entry) => {
                 if (entry.isIntersecting) {
                     startAnimation();
-                    console.log(entry);
                 } else {
                     stopAnimation();
                 }
+
+                // 0 when the phone's top hits the bottom of the viewport,
+                // 1 when its bottom clears the top. Drives rotation.x on touch.
+                const rect = entry.boundingClientRect;
+                const vh = window.innerHeight;
+                scrollProgress = Math.min(Math.max((vh - rect.top) / (vh + rect.height), 0), 1);
             });
         },
-        { threshold: 0 }
+        { threshold: Array.from({ length: 101 }, (_, i) => i / 100) }
     );
 
     observer.observe(parentElement);
