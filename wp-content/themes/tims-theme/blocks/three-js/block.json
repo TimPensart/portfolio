@@ -1,0 +1,17 @@
+{
+    "apiVersion": 3,
+    "name": "tim/three-js",
+    "title": "Three JS",
+    "description": "A custom three js block for 3D models and scenes.",
+    "style": ["file:./three-js.css"],
+    "category": "formatting",
+    "icon": "video-alt",
+    "keywords": ["three", "js", "3D", "model"],
+    "acf": {
+        "mode": "preview",
+        "renderTemplate": "three-js.php"
+    },
+    "supports": {
+        "anchor": true
+    }
+}

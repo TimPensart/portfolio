@@ -5,6 +5,8 @@ import { SplitText } from "gsap/SplitText";
 
 import Lenis from "lenis";
 
+import Render3dPhone from "./phone3d";
+
 document.addEventListener("DOMContentLoaded", function () {
     const lenis = new Lenis();
 
@@ -22,6 +24,10 @@ document.addEventListener("DOMContentLoaded", function () {
     textRevealAnimation();
 
     gridStaggerAnimation();
+
+    document.querySelectorAll(".three-container")?.forEach((el) => {
+        Render3dPhone(document.getElementById(el.id), "models/phone/" + el.id + ".glb");
+    });
 });
 
 function textRevealAnimation() {

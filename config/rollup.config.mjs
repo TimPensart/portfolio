@@ -11,5 +11,5 @@ export default {
         dir: "wp-content/themes/tims-theme/dist/scripts/",
         format: "esm",
     },
-    plugins: [folderInput(), nodeResolve(), postcss(), commonjs(), babel({ babelHelpers: "bundled" }), terser()],
+    plugins: [folderInput(), nodeResolve(), postcss(), commonjs(), babel({ babelHelpers: "bundled", exclude: "node_modules/**" }), terser()],
 };

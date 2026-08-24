@@ -217,6 +217,13 @@
                     "letterSpacing": "-0.1px"
                 }
             }
+        },
+        "blocks": {
+            "core/columns": {
+                "spacing": {
+                    "blockGap": "var:preset|spacing|50"
+                }
+            }
         }
     },
     "templateParts": [
