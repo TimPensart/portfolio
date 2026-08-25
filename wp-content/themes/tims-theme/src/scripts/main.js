@@ -52,6 +52,7 @@ function textRevealAnimation() {
                 opacity: 0,
             });
         },
+        once: true,
     });
 }
 
@@ -64,6 +65,7 @@ function gridStaggerAnimation() {
             scrollTrigger: {
                 trigger: ".wp-block-tim-projects-grid",
                 start: "top 80%",
+                once: true,
             },
             delay: twoColumnIndex * 0.2,
             duration: 0.8,
