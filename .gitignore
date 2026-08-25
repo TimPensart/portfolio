@@ -5,6 +5,7 @@ public/wp-content/mu-plugins/
 public/wp-content/plugins/
 public/wp-content/updraft/
 public/wp-content/uploads/
+public/wp-content/languages/
 *dist/
 .well-known/
 *node_modules/

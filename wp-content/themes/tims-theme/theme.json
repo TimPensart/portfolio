@@ -223,6 +223,11 @@
                 "spacing": {
                     "blockGap": "var:preset|spacing|50"
                 }
+            },
+            "core/buttons": {
+                "spacing": {
+                    "blockGap": "10px"
+                }
             }
         }
     },

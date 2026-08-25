@@ -13,7 +13,7 @@
     },
     "homepage": "https://github.com/TimPensart/portfolio#readme",
     "scripts": {
-        "sass": "sass --style=compressed --source-map --quiet wp-content/themes/tims-theme/src/styles/pages/:wp-content/themes/tims-theme/dist/styles/pages/",
+        "sass": "sass --load-path=node_modules --style=compressed --source-map --quiet wp-content/themes/tims-theme/src/styles/pages/:wp-content/themes/tims-theme/dist/styles/pages/",
         "sass:blocks": "node config/sass-blocks.js",
         "process:sass:blocks": "node config/echo \"Sass Blocks started\" -f 94 && npm --silent run sass:blocks && node config/echo \"Sass Blocks finished\" -f 94",
         "watch:sass:blocks": "nodemon --watch wp-content/themes/tims-theme/src/styles/blocks --ext scss --silent --quiet --exec \"npm-run-all process:sass:blocks\"",
