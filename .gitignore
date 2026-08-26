@@ -1,29 +1,38 @@
-*.log
-public/wp-content/cache/
-public/wp-content/debug.log
-public/wp-content/mu-plugins/
-public/wp-content/plugins/
-public/wp-content/updraft/
-public/wp-content/uploads/
-public/wp-content/languages/
-*dist/
-.well-known/
-*node_modules/
-.env
-.htaccess
-.vscode/
-.idea/
+# WordPress core, plugins and dependencies. All of these are installed by
+# `composer install` / `npm install` rather than tracked.
+/core/
+wp-content/plugins/
+wp-content/mu-plugins/
+wp-content/languages/
 *wp-includes/
 *wp-admin/
-salt.php
 *vendor/
+*node_modules/
 xmlrpc.php
-public/core/
 
-# Local database dumps. These carry the wp_users table -- real email addresses
-# and password hashes -- so they never belong in the repository.
+# Uploads, caches and backups: site content, not source.
+wp-content/uploads/
+wp-content/cache/
+wp-content/updraft/
+wp-content/debug.log
+*.log
+
+# Secrets and server config.
+.env
+salt.php
+.htaccess
+.well-known/
+
+# Database dumps. These carry the wp_users table -- real email addresses and
+# password hashes -- so they never belong in the repository.
+*.sql
 sql/
 
-# Source maps for the compiled block stylesheets. The .css is committed because
-# block.json points at it; the maps are a local debugging aid.
+# Build output. `npm run build` regenerates everything under dist/, and the
+# committed block stylesheets do not need their maps.
+*dist/
 *.css.map
+
+# Editor state.
+.vscode/
+.idea/

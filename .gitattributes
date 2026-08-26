@@ -1,0 +1,11 @@
+# Normalise line endings. Every tracked text file is stored LF, so pin the
+# checkout to LF too -- otherwise core.autocrlf=true rewrites the working copy
+# to CRLF on Windows and every file shows up as modified.
+* text=auto eol=lf
+
+# Binaries: never touch these.
+*.png binary
+*.ico binary
+*.glb binary
+*.woff binary
+*.woff2 binary
