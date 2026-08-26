@@ -1,10 +1,12 @@
+@use "../base/variables" as v;
+
 .wp-block-tim-projects-grid {
     column-count: 2;
     --grid-gap: var(--wp--preset--spacing--40);
     column-gap: var(--grid-gap);
     padding: var(--grid-gap);
 
-    @media (max-width: 768px) {
+    @media (max-width: v.$bp-mobile) {
         --grid-gap: 10px;
     }
 

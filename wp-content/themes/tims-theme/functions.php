@@ -1,6 +1,6 @@
 <?php
 
-$sage_includes = array(
+$theme_includes = array(
     'inc/assets.php',
     'inc/setup.php',
     'inc/disable.php',
@@ -11,9 +11,16 @@ $sage_includes = array(
     'inc/blocks.php',
 );
 
-foreach ($sage_includes as $file) {
+foreach ($theme_includes as $file) {
     if (!$filepath = locate_template($file)) {
-        trigger_error(sprintf(__('Error locating %s for inclusion', 'sage'), $file), E_USER_ERROR);
+        trigger_error(
+            sprintf(
+                /* translators: %s: relative path of the include that could not be located. */
+                __('Error locating %s for inclusion', 'tims-theme'),
+                $file
+            ),
+            E_USER_ERROR
+        );
     }
 
     require_once $filepath;

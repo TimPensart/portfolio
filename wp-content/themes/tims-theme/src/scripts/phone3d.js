@@ -2,16 +2,32 @@ import * as THREE from "three";
 import { GLTFLoader } from "three/examples/jsm/Addons.js";
 import { DRACOLoader, DRACO_GLTF_CONFIG } from "three/addons/loaders/DRACOLoader.js";
 
+// The wallpaper cycle used to be counted in frames, which made it run twice as
+// fast on a 120Hz display. The timings below are still expressed as "frames at
+// 60fps" because that is how they were dialled in, but they are converted to
+// seconds once and the loop runs off elapsed time, so the cadence is the same
+// on every display.
+const REFERENCE_FPS = 60;
+const WALLPAPER_CYCLE_FRAMES = 1000;
+
+// How long one wallpaper fade takes. 0.01 of progress per frame at 60fps was
+// the original value, which works out to a touch under 1.7 seconds.
+const WALLPAPER_TRANSITION_SECONDS = 1 / (0.01 * REFERENCE_FPS);
+
+/**
+ * Render a rotating 3D phone into `parentElement`.
+ *
+ * @param {HTMLElement} parentElement Element the canvas is appended to.
+ * @param {string} sceneModel URL of the .glb scene to load.
+ * @returns {() => void} Teardown: stops the loop and releases the GPU
+ *   resources and listeners this instance created.
+ */
 export default function Render3dPhone(parentElement, sceneModel) {
     const scene = new THREE.Scene();
 
-    const camera = new THREE.PerspectiveCamera(10, parentElement.clientWidth / parentElement.clientHeight, 0.1, 1000);
+    const camera = new THREE.PerspectiveCamera(10, aspectRatio(), 0.1, 1000);
 
     const rotateSpeed = 1;
-
-    // Progress advances by this much every frame while a wallpaper transitions.
-    // 1 / step is roughly the transition length in frames (about 0.5s at 60fps).
-    const WALLPAPER_TRANSITION_STEP = 0.01;
 
     let object;
 
@@ -22,6 +38,12 @@ export default function Render3dPhone(parentElement, sceneModel) {
     // the phone's scroll progress through the viewport instead (see animate()).
     const isTouch = window.matchMedia("(pointer: coarse)").matches;
 
+    function aspectRatio() {
+        // A collapsed container would hand the camera a NaN aspect, which
+        // blanks the canvas until the next resize.
+        return parentElement.clientHeight > 0 ? parentElement.clientWidth / parentElement.clientHeight : 1;
+    }
+
     // 0 when the phone's top hits the bottom of the viewport, 1 when its bottom
     // clears the top. Sampled once per rendered frame so it stays in sync with
     // scrolling instead of jumping between IntersectionObserver callbacks.
@@ -31,17 +53,16 @@ export default function Render3dPhone(parentElement, sceneModel) {
         return Math.min(Math.max((vh - rect.top) / (vh + rect.height), 0), 1);
     }
 
-    // Add or remove wallpaper configs here. Each one is fully independent:
-    // its own trigger offset, its own animating state, its own targets.
-    let wallpapers = [
+    // Add or remove wallpaper configs here. Each one is fully independent: its
+    // own trigger offsets, its own animating state, its own targets. `mesh` is
+    // filled in once the model has loaded and the matching material is found.
+    const wallpapers = [
         {
             materialName: "Wallpaper.002",
             startTrigger: 250,
             endTrigger: 999,
             posY: -0.15,
             posAnim: { start: 0.2, end: 0 },
-            opaAnim: { start: 0, end: 1 },
-            animating: false,
         },
         {
             materialName: "Wallpaper.003",
@@ -49,10 +70,20 @@ export default function Render3dPhone(parentElement, sceneModel) {
             endTrigger: 930,
             posY: -0.3,
             posAnim: { start: 0.2, end: 0 },
-            opaAnim: { start: 0, end: 1 },
-            animating: false,
         },
-    ];
+    ].map((wallpaper) => ({
+        ...wallpaper,
+        mesh: null,
+        animating: false,
+        progress: 1,
+        fromOpacity: 0,
+        toOpacity: 0,
+        fromPosZ: wallpaper.posAnim.start,
+        toPosZ: wallpaper.posAnim.start,
+        // Set up front rather than during the traverse, so a wallpaper whose
+        // mesh happens to be the last child visited still gets one.
+        nextTrigger: wallpaper.startTrigger,
+    }));
 
     const dracoLoader = new DRACOLoader();
     dracoLoader.setDecoderPath(DRACO_GLTF_CONFIG);
@@ -78,42 +109,41 @@ export default function Render3dPhone(parentElement, sceneModel) {
 
     positionFloor(-1); // placeholder until the model loads and we can fit it exactly
 
+    function initWallpaper(wallpaper, mesh) {
+        wallpaper.mesh = mesh;
+        mesh.position.y = wallpaper.posY;
+        mesh.position.z = wallpaper.posAnim.start;
+        mesh.material.transparent = true;
+        mesh.material.opacity = 0;
+    }
+
     loader.load(
         sceneModel,
         function (gltf) {
             object = gltf.scene;
-            object.traverse((child) => {
-                wallpapers = wallpapers.map((wallpaper) => {
-                    if (child.isMesh && child.parent.name == "Body001") {
-                        child.castShadow = true;
-                        child.receiveShadow = true;
-                    }
 
-                    if (child.material?.name?.includes(wallpaper.materialName)) {
-                        const merged = { ...wallpaper, ...child };
-                        merged.mesh = child; // real reference to the mesh, needed to toggle castShadow later
-                        merged.position.y = wallpaper.posY;
-                        merged.position.z = merged.posAnim.start;
-                        merged.material.transparent = true;
-                        merged.material.opacity = merged.opaAnim.start;
-                        merged.progress = 1;
-                        merged.fromOpacity = merged.opaAnim.start;
-                        merged.toOpacity = merged.opaAnim.start;
-                        merged.fromPosZ = merged.posAnim.start;
-                        merged.toPosZ = merged.posAnim.start;
-                        return merged;
-                    }
-                    wallpaper.triggerOffset = wallpaper.startTrigger;
-                    return wallpaper;
-                });
+            object.traverse((child) => {
+                if (!child.isMesh) return;
+
+                if (child.parent.name === "Body001") {
+                    child.castShadow = true;
+                    child.receiveShadow = true;
+                }
+
+                const wallpaper = wallpapers.find((candidate) => child.material?.name?.includes(candidate.materialName));
+
+                if (wallpaper) {
+                    initWallpaper(wallpaper, child);
+                }
             });
+
             scene.add(object);
 
             // Fit the floor and the light's shadow frustum to the actual model
             // instead of guessing fixed numbers.
             const box = new THREE.Box3().setFromObject(object);
             const size = box.getSize(new THREE.Vector3());
-            const radius = Math.max(size.x, size.z) * 1 || 3;
+            const radius = Math.max(size.x, size.z) || 3;
 
             positionFloor(box.min.y + 0.02);
 
@@ -125,9 +155,9 @@ export default function Render3dPhone(parentElement, sceneModel) {
             topLight.shadow.camera.far = topLight.position.distanceTo(new THREE.Vector3(0, box.min.y, 0)) + 2;
             topLight.shadow.camera.updateProjectionMatrix();
         },
-        function (xhr) {},
+        undefined,
         function (error) {
-            console.error(error);
+            console.error("Could not load 3D scene " + sceneModel, error);
         }
     );
 
@@ -163,59 +193,82 @@ export default function Render3dPhone(parentElement, sceneModel) {
     const ambientLight = new THREE.AmbientLight(0x333333, 1);
     scene.add(ambientLight);
 
-    let counter = 0;
-
+    const clock = new THREE.Clock();
+    let elapsed = 0;
     let animationFrameId = null;
-
-    function animate() {
-        animationFrameId = requestAnimationFrame(animate);
-        if (!object) return;
-        if (isTouch) {
-            object.rotation.x = (computeScrollProgress() - 0.5) * -3;
-            object.rotation.y = Math.PI + (computeScrollProgress() - 0.5) * 2;
-        } else {
-            object.rotation.x = (mouseY / window.innerHeight) * rotateSpeed;
-            object.rotation.y = (Math.PI + mouseX / window.innerWidth) * rotateSpeed;
-        }
-
-        wallpapers.forEach((wallpaper) => {
-            if (wallpaper.material === undefined) return;
-
-            if (counter % 1000 === wallpaper.triggerOffset) {
-                wallpaper.fromOpacity = wallpaper.material.opacity;
-                wallpaper.toOpacity = wallpaper.fromOpacity === 0 ? 1 : 0;
-                wallpaper.fromPosZ = wallpaper.position.z;
-                wallpaper.toPosZ = wallpaper.position.z === wallpaper.posAnim.end ? wallpaper.posAnim.start : wallpaper.posAnim.end;
-                wallpaper.progress = 0;
-                wallpaper.animating = true;
-
-                wallpaper.triggerOffset = wallpaper.triggerOffset == wallpaper.startTrigger ? wallpaper.endTrigger : wallpaper.startTrigger;
-            }
-
-            if (wallpaper.animating) {
-                wallpaper.progress = Math.min(wallpaper.progress + WALLPAPER_TRANSITION_STEP, 1);
-                const eased = easeInOutCubic(wallpaper.progress);
-
-                wallpaper.material.opacity = THREE.MathUtils.lerp(wallpaper.fromOpacity, wallpaper.toOpacity, eased);
-                wallpaper.position.z = THREE.MathUtils.lerp(wallpaper.fromPosZ, wallpaper.toPosZ, eased);
-
-                if (wallpaper.progress >= 1) {
-                    wallpaper.animating = false;
-                }
-            }
-        });
-
-        counter += 1;
-
-        renderer.render(scene, camera);
-    }
 
     function easeInOutCubic(t) {
         return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
     }
 
+    // A wallpaper flips state when the cycle clock passes its next trigger.
+    // Comparing positions in the cycle (rather than an exact frame count) means
+    // a dropped frame delays the flip instead of skipping it entirely.
+    function cyclePosition() {
+        return ((elapsed * REFERENCE_FPS) % WALLPAPER_CYCLE_FRAMES) / REFERENCE_FPS;
+    }
+
+    function updateWallpaper(wallpaper, delta, previousCyclePosition, currentCyclePosition) {
+        if (!wallpaper.mesh) return;
+
+        const trigger = wallpaper.nextTrigger / REFERENCE_FPS;
+        const wrapped = currentCyclePosition < previousCyclePosition;
+        const passedTrigger = wrapped ? trigger > previousCyclePosition || trigger <= currentCyclePosition : trigger > previousCyclePosition && trigger <= currentCyclePosition;
+
+        if (passedTrigger) {
+            wallpaper.fromOpacity = wallpaper.mesh.material.opacity;
+            wallpaper.toOpacity = wallpaper.fromOpacity === 0 ? 1 : 0;
+            wallpaper.fromPosZ = wallpaper.mesh.position.z;
+            wallpaper.toPosZ = wallpaper.mesh.position.z === wallpaper.posAnim.end ? wallpaper.posAnim.start : wallpaper.posAnim.end;
+            wallpaper.progress = 0;
+            wallpaper.animating = true;
+
+            wallpaper.nextTrigger = wallpaper.nextTrigger === wallpaper.startTrigger ? wallpaper.endTrigger : wallpaper.startTrigger;
+        }
+
+        if (!wallpaper.animating) return;
+
+        wallpaper.progress = Math.min(wallpaper.progress + delta / WALLPAPER_TRANSITION_SECONDS, 1);
+        const eased = easeInOutCubic(wallpaper.progress);
+
+        wallpaper.mesh.material.opacity = THREE.MathUtils.lerp(wallpaper.fromOpacity, wallpaper.toOpacity, eased);
+        wallpaper.mesh.position.z = THREE.MathUtils.lerp(wallpaper.fromPosZ, wallpaper.toPosZ, eased);
+
+        if (wallpaper.progress >= 1) {
+            wallpaper.animating = false;
+        }
+    }
+
+    function animate() {
+        animationFrameId = requestAnimationFrame(animate);
+
+        // Clamp so a tab that was backgrounded for a minute does not fast
+        // forward the whole cycle on the frame it comes back.
+        const delta = Math.min(clock.getDelta(), 1 / 20);
+
+        if (!object) return;
+
+        if (isTouch) {
+            const progress = computeScrollProgress();
+            object.rotation.x = (progress - 0.5) * -3;
+            object.rotation.y = Math.PI + (progress - 0.5) * 2;
+        } else {
+            object.rotation.x = (mouseY / window.innerHeight) * rotateSpeed;
+            object.rotation.y = (Math.PI + mouseX / window.innerWidth) * rotateSpeed;
+        }
+
+        const previousCyclePosition = cyclePosition();
+        elapsed += delta;
+        const currentCyclePosition = cyclePosition();
+
+        wallpapers.forEach((wallpaper) => updateWallpaper(wallpaper, delta, previousCyclePosition, currentCyclePosition));
+
+        renderer.render(scene, camera);
+    }
+
     function startAnimation() {
         if (animationFrameId === null) {
+            clock.getDelta(); // drop the time spent off screen
             animate();
         }
     }
@@ -244,15 +297,41 @@ export default function Render3dPhone(parentElement, sceneModel) {
 
     observer.observe(parentElement);
 
-    window.addEventListener("resize", function () {
-        camera.aspect = parentElement.clientWidth / parentElement.clientHeight;
+    function handleResize() {
+        camera.aspect = aspectRatio();
         camera.updateProjectionMatrix();
         renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
         renderer.setSize(parentElement.clientWidth, parentElement.clientHeight);
-    });
+    }
 
-    window.addEventListener("mousemove", function (e) {
-        mouseX = e.clientX - window.innerWidth / 2;
-        mouseY = e.clientY - window.innerHeight / 2;
-    });
+    function handleMouseMove(event) {
+        mouseX = event.clientX - window.innerWidth / 2;
+        mouseY = event.clientY - window.innerHeight / 2;
+    }
+
+    window.addEventListener("resize", handleResize);
+
+    // On touch the pointer position is never read, so there is no reason to
+    // keep a listener alive for it.
+    if (!isTouch) {
+        window.addEventListener("mousemove", handleMouseMove);
+    }
+
+    return function dispose() {
+        stopAnimation();
+        observer.disconnect();
+        window.removeEventListener("resize", handleResize);
+        window.removeEventListener("mousemove", handleMouseMove);
+
+        scene.traverse((child) => {
+            if (!child.isMesh) return;
+            child.geometry?.dispose();
+            const materials = Array.isArray(child.material) ? child.material : [child.material];
+            materials.forEach((material) => material?.dispose());
+        });
+
+        dracoLoader.dispose();
+        renderer.dispose();
+        renderer.domElement.remove();
+    };
 }

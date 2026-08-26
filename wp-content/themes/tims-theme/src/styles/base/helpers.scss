@@ -1,14 +1,20 @@
+@use "variables" as v;
+
 .bg-black {
-    background-color: var(--clr-black);
-    color: var(--clr-white);
+    background-color: var(--wp--preset--color--black);
+    color: var(--wp--preset--color--white);
 }
 
+// Core ships `.wp-block-columns { align-items: normal !important }`, so
+// overriding it needs !important too.
 .align-items-center {
     align-items: center !important;
 }
 
+// Puts the last column first once columns stack, so an image/text pair reads
+// image-then-text on narrow screens regardless of the desktop order.
 .mobile-reverse {
-    @media (max-width: 768px) {
+    @media (max-width: v.$bp-columns-stack) {
         > :last-child {
             order: -1;
         }

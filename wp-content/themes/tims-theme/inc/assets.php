@@ -3,9 +3,8 @@
 namespace Tim\Theme\Assets;
 
 /**
- * Get paths for assets
- *
- * Do not change this file, please.
+ * Resolve an asset's dist path, going through `dist/assets.json` when a build
+ * manifest is present so cache-busted filenames keep working.
  */
 class JsonManifest
 {

@@ -19,3 +19,11 @@ salt.php
 *vendor/
 xmlrpc.php
 public/core/
+
+# Local database dumps. These carry the wp_users table -- real email addresses
+# and password hashes -- so they never belong in the repository.
+sql/
+
+# Source maps for the compiled block stylesheets. The .css is committed because
+# block.json points at it; the maps are a local debugging aid.
+*.css.map

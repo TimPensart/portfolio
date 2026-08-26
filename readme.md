@@ -40,7 +40,7 @@ Do not change the folder structure inside the concerning **src/** folder
 
 This theme compiles seperate stylesheets for each page. Here's how it works:
 
-1. To create a new page (template) just add a page\*.php template under wp-content/themes/tims-theme/templates/
-2. To add SCSS styling to that page, you can add a page-\*.scss file to wp-content/themes/tims-theme/src/styles/pages/. Make sure that the file name of the .php template matches the .scss file name.
+1. To create a new page (template) just add a page-\*.html block template under wp-content/themes/tims-theme/templates/
+2. To add SCSS styling to that page, you can add a page-\*.scss file to wp-content/themes/tims-theme/src/styles/pages/. Make sure that the file name of the .html template matches the .scss file name.
 
 **All done!** In enqueue.php the linking of the stylesheets is handled automatically. Now each page has it's own clean stylesheet with only the styles it uses with @use.

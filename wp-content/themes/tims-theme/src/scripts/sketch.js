@@ -298,15 +298,26 @@ function resolvePalette(pal) {
 }
 
 document.addEventListener("DOMContentLoaded", function () {
-    let container = document.getElementById("sketch-canvas");
-    let containerWidth = container.clientWidth;
-    let containerHeight = container.clientHeight;
+    // The sketch only exists inside the home hero block. Every other template
+    // loads this bundle too, so bail out instead of throwing on a missing node.
+    const container = document.getElementById("sketch-canvas");
+
+    if (!container) return;
+
+    const containerWidth = container.clientWidth;
+    const containerHeight = container.clientHeight;
 
     // On mobile the WebGL shader pipeline renders with precision artifacts
     // (streaks/boxes/layering). Instead of a shader, mobile gets a plain 2D p5
     // sketch that paints a single static noise image in the same palette — no
     // WEBGL, no framebuffers, no draw loop.
-    const isMobile = /Mobi|Android|iPhone|iPad|iPod|IEMobile|BlackBerry/i.test(navigator.userAgent) || (window.matchMedia && window.matchMedia("(pointer: coarse)").matches);
+    const isMobile = window.matchMedia("(pointer: coarse)").matches;
+
+    // A continuously animating full-bleed background is exactly what
+    // prefers-reduced-motion is asking us not to render, so it takes the same
+    // static path as mobile.
+    const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const useStaticSketch = isMobile || prefersReducedMotion;
 
     // Smoothed pointer state (UV space, 0..1) + motion + interaction level.
     let mouseUV = [0.5, 0.5]; // eased influence center
@@ -341,7 +352,7 @@ document.addEventListener("DOMContentLoaded", function () {
         };
 
         // -------- Mobile: one static noise image, then stop --------
-        if (isMobile) {
+        if (useStaticSketch) {
             mobileNoiseSeed = random(1000); // fixed once; render stays deterministic
             mobileWidth = width;
             drawStaticNoise();
@@ -456,7 +467,7 @@ document.addEventListener("DOMContentLoaded", function () {
         // with a changed *height* only. Ignore those so the static noise never
         // re-renders (and never jumps) while scrolling. Only a real width change
         // (e.g. orientation) re-renders, reusing the same fixed seed.
-        if (isMobile) {
+        if (useStaticSketch) {
             if (el.clientWidth === mobileWidth) return;
             mobileWidth = el.clientWidth;
             resizeCanvas(el.clientWidth, el.clientHeight);
@@ -521,7 +532,7 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     window.draw = function () {
-        if (isMobile) return; // mobile renders once in setup()
+        if (useStaticSketch) return; // the static path renders once in setup()
 
         updatePointer();
 

@@ -1,35 +1,287 @@
 <!-- wp:template-part {"slug":"header","theme":"tims-theme","tagName":"header"} /-->
-
-<!-- wp:tim/hero-home {"name":"tim/hero-home","mode":"preview"} -->
-<!-- wp:image {"id":45,"width":"240px","sizeSlug":"full","linkDestination":"none"} -->
-<figure class="wp-block-image size-full is-resized"><img
-        src="http://portfolio.local/wp-content/uploads/2026/02/1000016546.jpg" alt="" class="wp-image-45"
-        style="width:240px" /></figure>
-<!-- /wp:image -->
-
-<!-- wp:group {"layout":{"type":"flex","flexWrap":"nowrap"}} -->
-<div class="wp-block-group"><!-- wp:group {"layout":{"type":"flex","orientation":"vertical"}} -->
+<main>
+    <!-- wp:tim/hero-home {"name":"tim/hero-home","mode":"preview"} -->
+    <!-- wp:group {"layout":{"type":"constrained"}} -->
     <div class="wp-block-group">
-        <!-- wp:heading {"level":1,"placeholder":"Add a heading...","style":{"typography":{"fontStyle":"normal","fontWeight":"500"}}} -->
-        <h1 class="wp-block-heading" style="font-style:normal;font-weight:500">Tim Pensart</h1>
-        <!-- /wp:heading -->
+        <!-- wp:columns {"className":"align-items-center","style":{"spacing":{"blockGap":{"top":"var:preset|spacing|70"}}}} -->
+        <div class="wp-block-columns align-items-center"><!-- wp:column -->
+            <div class="wp-block-column">
+                <!-- wp:image {"width":"320px","sizeSlug":"medium","linkDestination":"none","className":"is-style-default","style":{"border":{"radius":{"topLeft":"0px","topRight":"0px","bottomLeft":"0px","bottomRight":"0px"}},"layout":{"selfStretch":"fixed","flexSize":"320px"}}} -->
+                <figure class="wp-block-image size-medium is-resized has-custom-border is-style-default"><img src=""
+                        alt=""
+                        style="border-top-left-radius:0px;border-top-right-radius:0px;border-bottom-left-radius:0px;border-bottom-right-radius:0px;width:320px" />
+                </figure>
+                <!-- /wp:image -->
 
-        <!-- wp:heading {"style":{"typography":{"fontStyle":"normal","fontWeight":"300"}}} -->
-        <h2 class="wp-block-heading" style="font-style:normal;font-weight:300">Web developer</h2>
-        <!-- /wp:heading -->
+                <!-- wp:heading {"textAlign":"left","level":1,"placeholder":"Add a heading...","style":{"typography":{"fontStyle":"normal","fontWeight":"500","fontSize":"4rem"},"spacing":{"margin":{"top":"-0.5em","bottom":"-0.5em"}}}} -->
+                <h1 class="wp-block-heading has-text-align-left"
+                    style="margin-top:-0.5em;margin-bottom:-0.5em;font-size:4rem;font-style:normal;font-weight:500">Tim
+                    Pensart</h1>
+                <!-- /wp:heading -->
+            </div>
+            <!-- /wp:column -->
+
+            <!-- wp:column -->
+            <div class="wp-block-column">
+                <!-- wp:paragraph {"style":{"layout":{"selfStretch":"fixed","flexSize":"407px"},"spacing":{"margin":{"bottom":"var:preset|spacing|30"}}}} -->
+                <p style="margin-bottom:var(--wp--preset--spacing--30)">Ik ben fullstack developer met een achtergrond
+                    in Interaction Design. Ik bouw websites en digitale oplossingen die niet alleen technisch kloppen,
+                    maar ook toegankelijk zijn voor de gebruiker. Sinds kort bouw ik ook toegepaste AI oplossingen. Op
+                    zoek naar iemand die technisch sterk staat en toch oog heeft voor gebruiksvriendelijk design?</p>
+                <!-- /wp:paragraph -->
+
+                <!-- wp:buttons {"style":{"spacing":{"blockGap":{"left":"var:preset|spacing|20"}}}} -->
+                <div class="wp-block-buttons">
+                    <!-- wp:button {"backgroundColor":"white","textColor":"black","style":{"elements":{"link":{"color":{"text":"var:preset|color|black"}}}}} -->
+                    <div class="wp-block-button"><a
+                            class="wp-block-button__link has-black-color has-white-background-color has-text-color has-background has-link-color wp-element-button"
+                            href="#portfolio">Realisaties&nbsp;<svg xmlns="http://www.w3.org/2000/svg" width="32"
+                                height="32"
+                                viewBox="0 0 24 24"><!-- Icon from Material Symbols by Google - https://github.com/google/material-design-icons/blob/master/LICENSE -->
+                                <path fill="currentColor" d="M11 4v12.175l-5.6-5.6L4 12l8 8l8-8l-1.4-1.425l-5.6 5.6V4z">
+                                </path>
+                            </svg></a></div>
+                    <!-- /wp:button -->
+
+                    <!-- wp:button {"textColor":"white","className":"is-style-outline","style":{"elements":{"link":{"color":{"text":"var:preset|color|white"}}}}} -->
+                    <div class="wp-block-button is-style-outline"><a
+                            class="wp-block-button__link has-white-color has-text-color has-link-color wp-element-button"
+                            href="mailto:tim.pensart@hotmail.com">Contacteer mij</a></div>
+                    <!-- /wp:button -->
+                </div>
+                <!-- /wp:buttons -->
+            </div>
+            <!-- /wp:column -->
+        </div>
+        <!-- /wp:columns -->
     </div>
     <!-- /wp:group -->
-</div>
-<!-- /wp:group -->
-<!-- /wp:tim/hero-home -->
+    <!-- /wp:tim/hero-home -->
 
-<!-- wp:group {"tagName":"section","className":"is-style-light-bg","layout":{"type":"constrained"}} -->
-<section class="wp-block-group is-style-light-bg"><!-- wp:heading -->
-    <h2 class="wp-block-heading">Second section</h2>
-    <!-- /wp:heading -->
+    <!-- wp:group {"tagName":"section","className":"is-style-light-bg","layout":{"type":"constrained","justifyContent":"center"}} -->
+    <section id="portfolio" class="wp-block-group is-style-light-bg">
+        <!-- wp:group {"align":"full","layout":{"type":"constrained","justifyContent":"center"}} -->
+        <div class="wp-block-group alignfull"><!-- wp:heading {"textAlign":"center","align":"wide"} -->
+            <h2 class="wp-block-heading alignwide has-text-align-center">Portfolio</h2>
+            <!-- /wp:heading -->
 
-    <!-- wp:tim/projects-slider {"name":"tim/projects-slider","data":{"field_69a604005260f":["64"]},"mode":"preview"} /-->
-</section>
-<!-- /wp:group -->
+            <!-- wp:paragraph {"align":"center","style":{"spacing":{"padding":{"bottom":"var:preset|spacing|60","top":"0"}}}} -->
+            <p class="has-text-align-center" style="padding-top:0;padding-bottom:var(--wp--preset--spacing--60)">Een
+                overzicht van sommige projecten die ik heb gebouwd @ Expliciet.</p>
+            <!-- /wp:paragraph -->
+
+            <!-- wp:tim/projects-grid {"name":"tim/projects-grid","align":"full","mode":"preview"} /-->
+        </div>
+        <!-- /wp:group -->
+    </section>
+    <!-- /wp:group -->
+
+    <!-- wp:group {"tagName":"section","className":"is-style-light-bg","layout":{"type":"constrained"}} -->
+    <section class="wp-block-group is-style-light-bg">
+        <!-- wp:columns {"align":"wide","className":"align-items-center mobile-reverse"} -->
+        <div class="wp-block-columns alignwide align-items-center mobile-reverse">
+            <!-- wp:column {"width":"50%","className":"mobile-reverse"} -->
+            <div class="wp-block-column mobile-reverse" style="flex-basis:50%"><!-- wp:heading -->
+                <h2 class="wp-block-heading">SkateTerrain.</h2>
+                <!-- /wp:heading -->
+
+                <!-- wp:heading {"level":4} -->
+                <h4 class="wp-block-heading">Een app voor skaters, door een skater</h4>
+                <!-- /wp:heading -->
+
+                <!-- wp:paragraph -->
+                <p><strong>Het probleem</strong> Skaters skaten niet graag uitsluitend op skateparks maar ook op
+                    'street' spots. Binnen de skate community worden goede skate spots vaak gedeeld via chat, maar
+                    zelden vastgelegd. Na verloop van tijd raken ze vergeten.</p>
+                <!-- /wp:paragraph -->
+
+                <!-- wp:paragraph -->
+                <p><strong>De oplossing</strong> SkateTerrain is een kaart-gebaseerd platform waarop skaters spots
+                    kunnen toevoegen en terugvinden, met foto, spot type, locatie en omschrijving.</p>
+                <!-- /wp:paragraph -->
+
+                <!-- wp:paragraph -->
+                <p><strong>Onderzoek en ontwerp</strong> Ik bevroeg skaters uit mijn eigen omgeving over welke
+                    informatie en features ze het meest waardevol vonden. Op basis daarvan bepaalde ik de kernfeatures:
+                    een kaart met spot types, een profiel met eigen spots, en een feed met skate content. Het logo
+                    testte ik via een korte enquête bij de doelgroep voor ik het definitief maakte.</p>
+                <!-- /wp:paragraph -->
+
+                <!-- wp:paragraph -->
+                <p><strong>Ontwikkeling</strong> De app is native gebouwd in Android Studio met Java, en gebruikt de
+                    Google Maps API voor de kaartweergave.</p>
+                <!-- /wp:paragraph -->
+
+                <!-- wp:paragraph -->
+                <p></p>
+                <!-- /wp:paragraph -->
+
+                <!-- wp:paragraph -->
+                <p>Dit was een studentenproject en is inmiddels verouderd: het draait niet meer op recente Android
+                    versies en is niet beschikbaar om te downloaden. Onderzoek, ontwerp en prototype zijn hier wel
+                    volledig te bekijken.</p>
+                <!-- /wp:paragraph -->
+
+                <!-- wp:buttons -->
+                <div class="wp-block-buttons"><!-- wp:button {"className":"is-style-outline"} -->
+                    <div class="wp-block-button is-style-outline"><a class="wp-block-button__link wp-element-button"
+                            href="https://github.com/TimPensart/SkateTerrain" target="_blank"
+                            rel="noreferrer noopener"><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32"
+                                viewBox="0 0 32 32"><!-- Icon from CoreUI Brands by creativeLabs Łukasz Holeczek - https://creativecommons.org/publicdomain/zero/1.0/ -->
+                                <path fill="currentColor"
+                                    d="M16 .396c-8.839 0-16 7.167-16 16c0 7.073 4.584 13.068 10.937 15.183c.803.151 1.093-.344 1.093-.772c0-.38-.009-1.385-.015-2.719c-4.453.964-5.391-2.151-5.391-2.151c-.729-1.844-1.781-2.339-1.781-2.339c-1.448-.989.115-.968.115-.968c1.604.109 2.448 1.645 2.448 1.645c1.427 2.448 3.744 1.74 4.661 1.328c.14-1.031.557-1.74 1.011-2.135c-3.552-.401-7.287-1.776-7.287-7.907c0-1.751.62-3.177 1.645-4.297c-.177-.401-.719-2.031.141-4.235c0 0 1.339-.427 4.4 1.641a15.4 15.4 0 0 1 4-.541c1.36.009 2.719.187 4 .541c3.043-2.068 4.381-1.641 4.381-1.641c.859 2.204.317 3.833.161 4.235c1.015 1.12 1.635 2.547 1.635 4.297c0 6.145-3.74 7.5-7.296 7.891c.556.479 1.077 1.464 1.077 2.959c0 2.14-.02 3.864-.02 4.385c0 .416.28.916 1.104.755c6.4-2.093 10.979-8.093 10.979-15.156c0-8.833-7.161-16-16-16z">
+                                </path>
+                            </svg>
+                            &nbsp;GitHub repo</a></div>
+                    <!-- /wp:button -->
+                </div>
+                <!-- /wp:buttons -->
+            </div>
+            <!-- /wp:column -->
+
+            <!-- wp:column {"width":"50%"} -->
+            <div class="wp-block-column" style="flex-basis:50%">
+                <!-- wp:tim/three-js {"name":"tim/three-js","mode":"preview","anchor":"scene-4"} /--></div>
+            <!-- /wp:column -->
+        </div>
+        <!-- /wp:columns -->
+    </section>
+    <!-- /wp:group -->
+
+    <!-- wp:group {"tagName":"section","className":"is-style-light-bg","layout":{"type":"constrained"}} -->
+    <section class="wp-block-group is-style-light-bg">
+        <!-- wp:columns {"align":"wide","className":"align-items-center"} -->
+        <div class="wp-block-columns alignwide align-items-center"><!-- wp:column {"width":"50%"} -->
+            <div class="wp-block-column" style="flex-basis:50%">
+                <!-- wp:tim/three-js {"name":"tim/three-js","mode":"preview","anchor":"floro-scene"} /--></div>
+            <!-- /wp:column -->
+
+            <!-- wp:column {"width":"50%"} -->
+            <div class="wp-block-column" style="flex-basis:50%">
+                <!-- wp:group {"style":{"spacing":{"blockGap":"var:preset|spacing|30","margin":{"bottom":"var:preset|spacing|40"}}},"layout":{"type":"flex","flexWrap":"nowrap"}} -->
+                <div class="wp-block-group" style="margin-bottom:var(--wp--preset--spacing--40)">
+                    <!-- wp:image {"sizeSlug":"full","linkDestination":"none","style":{"layout":{"selfStretch":"fixed","flexSize":"64px"}}} -->
+                    <figure class="wp-block-image size-full"><img src="" alt="" /></figure>
+                    <!-- /wp:image -->
+
+                    <!-- wp:heading -->
+                    <h2 class="wp-block-heading">Floro</h2>
+                    <!-- /wp:heading -->
+                </div>
+                <!-- /wp:group -->
+
+                <!-- wp:heading {"level":4} -->
+                <h4 class="wp-block-heading">Een zoektocht naar planten, verpakt als spel</h4>
+                <!-- /wp:heading -->
+
+                <!-- wp:paragraph -->
+                <p>Deze masterproef begon bij een vraag die me persoonlijk bezighield: hoe krijg je jongeren, die
+                    opgroeien met een scherm in de hand, opnieuw geïnteresseerd in wat er buiten groeit.</p>
+                <!-- /wp:paragraph -->
+
+                <!-- wp:paragraph -->
+                <p><strong>Het probleem</strong> Steeds meer jongeren groeien op in een stedelijke omgeving en komen
+                    daardoor amper nog in contact met de natuur. Nochtans is dat contact belangrijk voor hun fysieke en
+                    mentale welzijn.</p>
+                <!-- /wp:paragraph -->
+
+                <!-- wp:paragraph -->
+                <p><strong>De oplossing</strong> Floro maakt van het ontdekken van planten een spel. Gebruikers zoeken
+                    plantensoorten in de natuur, identificeren ze met de camera, en verzamelen zaadjes om een eigen
+                    digitale tuin op te bouwen. Kennisquizzes over de gevonden planten geven extra beloningen. Zo wordt
+                    buiten zijn een doel op zich, in plaats van iets wat toevallig gebeurt.</p>
+                <!-- /wp:paragraph -->
+
+                <!-- wp:paragraph -->
+                <p><strong>Onderzoek en concept</strong> Ik startte vanuit literatuuronderzoek over natuur, jeugd en
+                    gamification, en analyseerde bestaande apps zoals Seek, ObsIdentify en Pokémon Go. Het
+                    oorspronkelijke idee draaide rond vogels spotten, maar dat bleek technisch te beperkt: vogels
+                    vliegen weg voor je ze goed kan fotograferen. Planten bleken de betere keuze, makkelijk te vinden,
+                    makkelijk te fotograferen en overal aanwezig.</p>
+                <!-- /wp:paragraph -->
+
+                <!-- wp:paragraph -->
+                <p><strong>Techniek</strong> Voor de plantherkenning gebruikte ik de Plant.id API, en voor de camera de
+                    CameraX library, beide native gebouwd in Java met Android Studio. Dit bevestigde dat het concept ook
+                    technisch haalbaar was.</p>
+                <!-- /wp:paragraph -->
+
+                <!-- wp:paragraph -->
+                <p><strong>Nominatie </strong>Voor dit project werd ik genomineerd voor de Wanatoeprijs 2021 en mocht ik
+                    presenteren voor de jury.</p>
+                <!-- /wp:paragraph -->
+
+                <!-- wp:paragraph -->
+                <p><em>Floro is een onderzoeksproject uit mijn masteropleiding. Het resultaat was een technische proof
+                        of concept in native Android. De app is ondertussen verouderd en niet beschikbaar in de play
+                        store.</em></p>
+                <!-- /wp:paragraph -->
+
+                <!-- wp:buttons -->
+                <div class="wp-block-buttons">
+                    <!-- wp:button {"backgroundColor":"black","textColor":"white","className":"is-style-fill","style":{"elements":{"link":{"color":{"text":"var:preset|color|white"}}}}} -->
+                    <div class="wp-block-button is-style-fill"><a
+                            class="wp-block-button__link has-white-color has-black-background-color has-text-color has-background has-link-color wp-element-button"
+                            href="https://www.figma.com/proto/ciOHe0geX4AAlNHQsK3Snl/Floro-Master-Prototype?page-id=0%3A1&amp;node-id=108%3A2&amp;viewport=1152%2C134%2C0.06751421093940735&amp;scaling=min-zoom&amp;starting-point-node-id=108%3A2"
+                            target="_blank" rel="noreferrer noopener"><svg id="Layer_1"
+                                xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 300" width="1667" height="2500">
+                                <style>
+                                    .st0 {
+                                        fill: #0acf83
+                                    }
+
+                                    .st1 {
+                                        fill: #a259ff
+                                    }
+
+                                    .st2 {
+                                        fill: #f24e1e
+                                    }
+
+                                    .st3 {
+                                        fill: #ff7262
+                                    }
+
+                                    .st4 {
+                                        fill: #1abcfe
+                                    }
+                                </style>
+                                <title>Figma.logo</title>
+                                <desc>Created using Figma</desc>
+                                <path id="path0_fill" class="st0"
+                                    d="M50 300c27.6 0 50-22.4 50-50v-50H50c-27.6 0-50 22.4-50 50s22.4 50 50 50z"></path>
+                                <path id="path1_fill" class="st1"
+                                    d="M0 150c0-27.6 22.4-50 50-50h50v100H50c-27.6 0-50-22.4-50-50z"></path>
+                                <path id="path1_fill_1_" class="st2"
+                                    d="M0 50C0 22.4 22.4 0 50 0h50v100H50C22.4 100 0 77.6 0 50z"></path>
+                                <path id="path2_fill" class="st3"
+                                    d="M100 0h50c27.6 0 50 22.4 50 50s-22.4 50-50 50h-50V0z"></path>
+                                <path id="path3_fill" class="st4"
+                                    d="M200 150c0 27.6-22.4 50-50 50s-50-22.4-50-50 22.4-50 50-50 50 22.4 50 50z">
+                                </path>
+                            </svg>&nbsp;Figma prototype</a></div>
+                    <!-- /wp:button -->
+
+                    <!-- wp:button {"className":"is-style-outline"} -->
+                    <div class="wp-block-button is-style-outline"><a class="wp-block-button__link wp-element-button"
+                            href="https://github.com/TimPensart/Floro" target="_blank" rel="noreferrer noopener"><svg
+                                xmlns="http://www.w3.org/2000/svg" width="32" height="32"
+                                viewBox="0 0 32 32"><!-- Icon from CoreUI Brands by creativeLabs Łukasz Holeczek - https://creativecommons.org/publicdomain/zero/1.0/ -->
+                                <path fill="currentColor"
+                                    d="M16 .396c-8.839 0-16 7.167-16 16c0 7.073 4.584 13.068 10.937 15.183c.803.151 1.093-.344 1.093-.772c0-.38-.009-1.385-.015-2.719c-4.453.964-5.391-2.151-5.391-2.151c-.729-1.844-1.781-2.339-1.781-2.339c-1.448-.989.115-.968.115-.968c1.604.109 2.448 1.645 2.448 1.645c1.427 2.448 3.744 1.74 4.661 1.328c.14-1.031.557-1.74 1.011-2.135c-3.552-.401-7.287-1.776-7.287-7.907c0-1.751.62-3.177 1.645-4.297c-.177-.401-.719-2.031.141-4.235c0 0 1.339-.427 4.4 1.641a15.4 15.4 0 0 1 4-.541c1.36.009 2.719.187 4 .541c3.043-2.068 4.381-1.641 4.381-1.641c.859 2.204.317 3.833.161 4.235c1.015 1.12 1.635 2.547 1.635 4.297c0 6.145-3.74 7.5-7.296 7.891c.556.479 1.077 1.464 1.077 2.959c0 2.14-.02 3.864-.02 4.385c0 .416.28.916 1.104.755c6.4-2.093 10.979-8.093 10.979-15.156c0-8.833-7.161-16-16-16z">
+                                </path>
+                            </svg>
+                            &nbsp;GitHub repo</a></div>
+                    <!-- /wp:button -->
+                </div>
+                <!-- /wp:buttons -->
+            </div>
+            <!-- /wp:column -->
+        </div>
+        <!-- /wp:columns -->
+    </section>
+    <!-- /wp:group -->
+
+</main>
 
 <!-- wp:template-part {"slug":"footer","theme":"tims-theme","tagName":"footer"} /-->

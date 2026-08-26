@@ -8,62 +8,57 @@ use Tim\Theme\Global as G;
 /**
  * Load theme styles & scripts.
  *
- * Enqueues the main stylesheet and JavaScript file for the theme.
+ * Each `templates/page-*.html` gets its own stylesheet compiled from the
+ * matching `src/styles/pages/page-*.scss`, so a page only ever downloads the
+ * CSS it actually uses. Only the stylesheet for the template WordPress resolved
+ * for this request is enqueued.
  *
- * @since 1.0.0
+ * @return void
  */
 function add_theme_scripts(): void
 {
+    $template_slug = str_replace('tims-theme//', '', G\get_current_fse_template_slug());
 
-
-    // get all pages from templates/page-*.php and enqueue the according stylesheet to that page
-    $template_files = glob(get_template_directory() . '/templates/page-*.html');
-    if ($template_files) {
-        foreach ($template_files as $template_file) {
-            $template_slug = basename($template_file);
-            $template_slug = str_replace('.html', '', $template_slug); // e.g., page-about
-
-            $current_page_template = str_replace('tims-theme//', '', G\get_current_fse_template_slug());
-
-            // Check if current page is using this template
-            if ($current_page_template === $template_slug) {
-                $template_name = pathinfo($template_slug, PATHINFO_FILENAME); // e.g., page-about
-                wp_enqueue_style(
-                    $template_name . '-style',
-                    Assets\asset_path('styles/pages/' . $template_name . '.css'),
-                    null,
-                    PROJECT_VERSION
-                );
-            }
-        }
+    if ($template_slug !== '' && file_exists(get_template_directory() . '/templates/' . $template_slug . '.html')) {
+        wp_enqueue_style(
+            $template_slug . '-style',
+            Assets\asset_path('styles/pages/' . $template_slug . '.css'),
+            [],
+            PROJECT_VERSION
+        );
     }
+    // general base styling
+    wp_enqueue_style('main', Assets\asset_path('styles/main.css'), [], PROJECT_VERSION);
+
 
     wp_enqueue_script('p5', Assets\asset_path('scripts/vendors/p5.min.js'), [], '2.2.1', true);
     wp_enqueue_script('sketch', Assets\asset_path('scripts/sketch.js'), ['p5'], PROJECT_VERSION, true);
     wp_enqueue_script('main', Assets\asset_path('scripts/main.js'), ['sketch'], PROJECT_VERSION, true);
 }
-
-add_action('wp_enqueue_scripts', __NAMESPACE__ . '\\add_theme_scripts', 100);
+add_action('wp_enqueue_scripts', __NAMESPACE__ . '\add_theme_scripts', 100);
 
 /**
- * Add attributes to script tag.
+ * Serve the bundled entry point as an ES module.
+ *
+ * Rollup emits `main.js` in ESM format, so it needs `type="module"`. Rewriting
+ * the tag rather than replacing it keeps the attributes WordPress added (id,
+ * defer, and anything a filter contributed).
  *
  * @param string $tag    The original script tag.
  * @param string $handle The script handle.
  * @param string $src    The script source URL.
  * @return string The modified script tag.
  */
-function add_type_attribute($tag, $handle, $src): mixed
+function add_type_attribute($tag, $handle, $src): string
 {
-    $scripts = [
-        'main',
-    ];
-
-    if (!in_array($handle, $scripts)) {
+    if ($handle !== 'main') {
         return $tag;
     }
 
-    return '<script type="module" src="' . esc_url($src) . '"></script>';
-}
+    // Drop the type WordPress may already have emitted before adding our own,
+    // so the tag never ends up with two.
+    $tag = preg_replace('/\stype=(["\']).*?\1/', '', $tag);
 
-add_filter('script_loader_tag', __NAMESPACE__ . '\\add_type_attribute', 10, 3);
+    return str_replace('<script ', '<script type="module" ', $tag);
+}
+add_filter('script_loader_tag', __NAMESPACE__ . '\add_type_attribute', 10, 3);

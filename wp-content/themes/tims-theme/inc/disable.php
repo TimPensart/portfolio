@@ -2,41 +2,59 @@
 
 namespace Tim\Theme\Disable;
 
-use Tim\Theme\Assets;
-
+/**
+ * Drop jquery-migrate from the front end.
+ *
+ * It only exists to patch jQuery 1.x era code, none of which this theme ships.
+ *
+ * @param \WP_Scripts $scripts
+ * @return void
+ */
 function dequeue_jquery_migrate($scripts): void
 {
-    if (!is_admin() && isset($scripts->registered['jquery'])) {
-        $script = $scripts->registered['jquery'];
-        if ($script->deps) {
-            $script->deps = array_diff($script->deps, array('jquery-migrate'));
-        }
+    if (is_admin() || !isset($scripts->registered['jquery'])) {
+        return;
+    }
+
+    $script = $scripts->registered['jquery'];
+
+    if ($script->deps) {
+        $script->deps = array_diff($script->deps, ['jquery-migrate']);
     }
 }
-add_action('wp_default_scripts', __NAMESPACE__ . '\\dequeue_jquery_migrate');
+add_action('wp_default_scripts', __NAMESPACE__ . '\dequeue_jquery_migrate');
 
+/**
+ * Drop the oEmbed host script. Nothing on the site is embedded elsewhere.
+ *
+ * @return void
+ */
 function dequeue_wp_embed(): void
 {
     wp_dequeue_script('wp-embed');
 }
-add_action('wp_footer', __NAMESPACE__ . '\\dequeue_wp_embed');
+add_action('wp_footer', __NAMESPACE__ . '\dequeue_wp_embed');
 
-add_action('wp_enqueue_scripts', __NAMESPACE__ . '\\overwrite_adminbar_styles', 11);
-function overwrite_adminbar_styles()
+/**
+ * Close the REST user endpoints in production.
+ *
+ * They enumerate author accounts for anonymous visitors, which is free
+ * reconnaissance for a login brute force. They stay open locally because the
+ * block editor uses them.
+ *
+ * @param array $endpoints
+ * @return array
+ */
+function remove_rest_user_endpoints($endpoints): array
 {
-    if (\is_user_logged_in()) {
-        wp_enqueue_style('xpl-adminbar', Assets\asset_path('styles/admin/adminbar.css'), null, PROJECT_VERSION);
-    }
+    unset(
+        $endpoints['/wp/v2/users'],
+        $endpoints['/wp/v2/users/(?P<id>[\d]+)']
+    );
+
+    return $endpoints;
 }
 
-if (\getenv('ENVIRONMENT') === 'production') {
-    add_filter('rest_endpoints', function ($endpoints) {
-        if (isset($endpoints['/wp/v2/users'])) {
-            unset($endpoints['/wp/v2/users']);
-        }
-        if (isset($endpoints['/wp/v2/users/(?P<id>[\d]+)'])) {
-            unset($endpoints['/wp/v2/users/(?P<id>[\d]+)']);
-        }
-        return $endpoints;
-    });
-};
+if (getenv('ENVIRONMENT') === 'production') {
+    add_filter('rest_endpoints', __NAMESPACE__ . '\remove_rest_user_endpoints');
+}

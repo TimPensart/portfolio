@@ -1,10 +1,23 @@
-<section class="not-found">
-    <div class="container">
+<!-- wp:template-part {"slug":"header","theme":"tims-theme","tagName":"header"} /-->
 
-        <article>
-            <h1>404 - page not found</h1>
-            <a class="btn-primary" href="/">Back to home</a>
-        </article>
+<!-- wp:group {"tagName":"main","className":"not-found","layout":{"type":"constrained"}} -->
+<main class="wp-block-group not-found">
 
-    </div>
-</section>
+    <section>
+        <!-- wp:heading {"level":1} -->
+        <h1 class="wp-block-heading">404 - pagina niet gevonden</h1>
+        <!-- /wp:heading -->
+
+        <!-- wp:buttons -->
+        <div class="wp-block-buttons"><!-- wp:button -->
+            <div class="wp-block-button"><a class="wp-block-button__link wp-element-button" href="/">Terug naar home</a>
+            </div>
+            <!-- /wp:button -->
+        </div>
+        <!-- /wp:buttons -->
+    </section>
+
+</main>
+<!-- /wp:group -->
+
+<!-- wp:template-part {"slug":"footer","theme":"tims-theme","tagName":"footer"} /-->

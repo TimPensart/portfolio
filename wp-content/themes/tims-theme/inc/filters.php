@@ -1,29 +1,29 @@
 <?php
 
-namespace Roots\Sage\Filters;
+namespace Tim\Theme\Filters;
 
 /**
- * Hide Draft Pages from the navigation menu (if included)
+ * Hide draft pages from any nav menu that happens to include them.
  *
- * @param $menu_items
- * @return mixed
+ * @param array $menu_items
+ * @return array
  */
-function filter_draft_pages_from_menu($menu_items): mixed
+function filter_draft_pages_from_menu($menu_items): array
 {
     foreach ($menu_items as $i => $menu_item) {
-        if ('draft' == get_post_status($menu_item->object_id)) {
+        if (get_post_status($menu_item->object_id) === 'draft') {
             unset($menu_items[$i]);
         }
     }
     return $menu_items;
 }
-add_filter('wp_nav_menu_objects', __NAMESPACE__ . '\\filter_draft_pages_from_menu', 10, 2);
+add_filter('wp_nav_menu_objects', __NAMESPACE__ . '\filter_draft_pages_from_menu');
 
 /**
- * Hide the default Posts menu item from the WordPress admin
+ * Hide the default Posts menu item from the WordPress admin.
  *
- * This function removes the "Posts" menu item from the admin dashboard
- * by targeting its slug 'edit.php'
+ * The theme only publishes pages and the `project` post type, so the built-in
+ * Posts screen is noise for the editor.
  *
  * @return void
  */
@@ -31,4 +31,4 @@ function remove_default_post_menu(): void
 {
     remove_menu_page('edit.php');
 }
-add_action('admin_menu', __NAMESPACE__ . '\\remove_default_post_menu');
+add_action('admin_menu', __NAMESPACE__ . '\remove_default_post_menu');

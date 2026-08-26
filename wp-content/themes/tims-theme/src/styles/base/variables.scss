@@ -1,3 +1,15 @@
+// Sass variables. These exist for the things CSS custom properties cannot do --
+// media query conditions being the main one.
+
+// General mobile breakpoint for spacing and type.
+$bp-mobile: 768px;
+
+// The width at which core stacks wp-block-columns. Anything that reorders or
+// re-flows columns has to use this exact value, or there is a dead band where
+// the columns have stacked but the theme's own rule has not applied yet.
+$bp-columns-stack: 781px;
+
 :root {
     --image-border-radius: 1rem;
+    --image-border-radius-mobile: 0.5rem;
 }

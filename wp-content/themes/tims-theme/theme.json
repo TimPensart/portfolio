@@ -213,7 +213,7 @@
                 "typography": {
                     "fontFamily": "var:preset|font-family|delight",
                     "fontWeight": "600",
-                    "lineHeight": "1",
+                    "lineHeight": "1.1",
                     "letterSpacing": "-0.1px"
                 }
             }
