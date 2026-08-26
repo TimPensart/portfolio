@@ -15,7 +15,7 @@ let paletteSrgb; // [[r,g,b], ...] x4 in 0..1 sRGB
 // Palettes
 //
 // A palette is any array of 4 colors. Each color may be written in ANY of these
-// formats — mix and match freely:
+// formats. Mix and match freely:
 //
 //   "#ff8800", "#f80"                    hex (3/4/6/8 digits, alpha ignored)
 //   "rgb(255 136 0)"  "rgba(255,136,0,.5)"
@@ -28,7 +28,7 @@ let paletteSrgb; // [[r,g,b], ...] x4 in 0..1 sRGB
 // shader, so gradients stay vivid and never wash out through muddy midtones.
 // -----------------------------------------------------------------------------
 
-// Example showcasing the new string formats — try `activePalette = sunsetGlow`.
+// Example showcasing the new string formats. Try `activePalette = sunsetGlow`.
 let sunsetGlow = [
     "oklch(0.82 0.15 85)", // warm gold
     "oklch(0.68 0.20 25)", // coral red
@@ -309,7 +309,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
     // On mobile the WebGL shader pipeline renders with precision artifacts
     // (streaks/boxes/layering). Instead of a shader, mobile gets a plain 2D p5
-    // sketch that paints a single static noise image in the same palette — no
+    // sketch that paints a single static noise image in the same palette: no
     // WEBGL, no framebuffers, no draw loop.
     const isMobile = window.matchMedia("(pointer: coarse)").matches;
 
@@ -333,7 +333,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
     // Mobile static-noise state: a fixed seed so the image is deterministic
     // (never jumps), and the last width we rendered at so scroll-triggered
-    // resizes — which only change viewport height — are ignored.
+    // resizes, which only change viewport height, are ignored.
     let mobileNoiseSeed = 0;
     let mobileWidth = containerWidth;
 
@@ -497,7 +497,7 @@ document.addEventListener("DOMContentLoaded", function () {
             const tx = mouseX / width;
             const ty = mouseY / height; // canvas UV matches p5's vTexCoord (y down)
 
-            // Smoothed pointer velocity — this drives the fluid advection.
+            // Smoothed pointer velocity. This drives the fluid advection.
             const vx = tx - prevTarget[0];
             const vy = ty - prevTarget[1];
             mouseVel[0] += (vx - mouseVel[0]) * 0.05;
@@ -684,7 +684,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
     // Persistent, mouse-driven fluid displacement of the noise domain. This
     // has been accumulated over previous frames, so past cursor strokes remain
-    // baked into the field — the plasma keeps flowing through the channels the
+    // baked into the field. The plasma keeps flowing through the channels the
     // pointer carved out.
     vec2 push = texture2D(u_field, uv).xy;
 
