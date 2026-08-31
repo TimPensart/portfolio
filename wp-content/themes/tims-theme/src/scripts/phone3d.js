@@ -2,17 +2,42 @@ import * as THREE from "three";
 import { GLTFLoader } from "three/examples/jsm/Addons.js";
 import { DRACOLoader, DRACO_GLTF_CONFIG } from "three/addons/loaders/DRACOLoader.js";
 
-// The wallpaper cycle used to be counted in frames, which made it run twice as
-// fast on a 120Hz display. The timings below are still expressed as "frames at
-// 60fps" because that is how they were dialled in, but they are converted to
-// seconds once and the loop runs off elapsed time, so the cadence is the same
-// on every display.
 const REFERENCE_FPS = 60;
-const WALLPAPER_CYCLE_FRAMES = 1000;
+const WALLPAPER_CYCLE_FRAMES = 500;
 
-// How long one wallpaper fade takes. 0.01 of progress per frame at 60fps was
-// the original value, which works out to a touch under 1.7 seconds.
-const WALLPAPER_TRANSITION_SECONDS = 1 / (0.01 * REFERENCE_FPS);
+const WALLPAPER_TRANSITION_SECONDS = 0.5 / (0.01 * REFERENCE_FPS);
+
+const LIGHTING = {
+    // Exposure applied after tone mapping. Brightens or darkens everything at
+    // once, without changing the balance between the lights.
+    exposure: 1,
+
+    // The stand-in for Blender's sky: a sky/horizon/ground gradient wrapped
+    // around the scene and prefiltered into an environment map, so every
+    // surface picks up soft light from all directions.
+    environment: {
+        intensity: 0.6,
+        skyColor: 0xdce7f5,
+        horizonColor: 0xffffff,
+        groundColor: 0x7d848c,
+    },
+
+    // Flat, directionless fill.
+    ambient: { color: 0xffffff, intensity: 0.08 },
+
+    // Key light, and the one that casts the floor shadow
+    key: { color: 0xffffff, intensity: 2, position: [0, 12, 0] },
+
+    // Fill from the opposite side, so the shadow side does not go solid.
+    fill: { color: 0xffffff, intensity: 0.5, position: [-7, 1, 5] },
+
+    // Rim from behind, to separate the silhouette from the background.
+    rim: { color: 0xffffff, intensity: 1, position: [-3, 5, -8] },
+
+    screenBrightness: 1,
+
+    shadowOpacity: 0.16,
+};
 
 /**
  * Render a rotating 3D phone into `parentElement`.
@@ -39,35 +64,27 @@ export default function Render3dPhone(parentElement, sceneModel) {
     const isTouch = window.matchMedia("(pointer: coarse)").matches;
 
     function aspectRatio() {
-        // A collapsed container would hand the camera a NaN aspect, which
-        // blanks the canvas until the next resize.
         return parentElement.clientHeight > 0 ? parentElement.clientWidth / parentElement.clientHeight : 1;
     }
 
-    // 0 when the phone's top hits the bottom of the viewport, 1 when its bottom
-    // clears the top. Sampled once per rendered frame so it stays in sync with
-    // scrolling instead of jumping between IntersectionObserver callbacks.
     function computeScrollProgress() {
         const rect = parentElement.getBoundingClientRect();
         const vh = window.innerHeight;
         return Math.min(Math.max((vh - rect.top) / (vh + rect.height), 0), 1);
     }
 
-    // Add or remove wallpaper configs here. Each one is fully independent: its
-    // own trigger offsets, its own animating state, its own targets. `mesh` is
-    // filled in once the model has loaded and the matching material is found.
     const wallpapers = [
         {
             materialName: "Wallpaper.002",
-            startTrigger: 250,
-            endTrigger: 999,
+            startTrigger: 125,
+            endTrigger: 499,
             posY: -0.15,
             posAnim: { start: 0.2, end: 0 },
         },
         {
             materialName: "Wallpaper.003",
-            startTrigger: 499,
-            endTrigger: 930,
+            startTrigger: 250,
+            endTrigger: 565,
             posY: -0.3,
             posAnim: { start: 0.2, end: 0 },
         },
@@ -80,8 +97,7 @@ export default function Render3dPhone(parentElement, sceneModel) {
         toOpacity: 0,
         fromPosZ: wallpaper.posAnim.start,
         toPosZ: wallpaper.posAnim.start,
-        // Set up front rather than during the traverse, so a wallpaper whose
-        // mesh happens to be the last child visited still gets one.
+
         nextTrigger: wallpaper.startTrigger,
     }));
 
@@ -91,14 +107,11 @@ export default function Render3dPhone(parentElement, sceneModel) {
     const loader = new GLTFLoader();
     loader.setDRACOLoader(dracoLoader);
 
-    // --- Floor / shadow ------------------------------------------------
-    // No visible floor mesh. ShadowMaterial is transparent except where a
-    // shadow falls, so it blends straight into your page's white background.
     const shadowGeometry = new THREE.PlaneGeometry(20, 20);
     shadowGeometry.rotateX(-Math.PI / 2);
 
     const shadowMaterial = new THREE.ShadowMaterial({ color: 0x000000 });
-    shadowMaterial.opacity = 0.16; // tweak this to make the shadow lighter or darker
+    shadowMaterial.opacity = LIGHTING.shadowOpacity;
     const shadowPlane = new THREE.Mesh(shadowGeometry, shadowMaterial);
     shadowPlane.receiveShadow = true;
     scene.add(shadowPlane);
@@ -117,6 +130,114 @@ export default function Render3dPhone(parentElement, sceneModel) {
         mesh.material.opacity = 0;
     }
 
+    const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.VSMShadowMap; // supports a real, adjustable blur radius
+
+    // Match the device's pixel density so the phone stays sharp on hi-DPR
+    // (mobile/retina) screens. Capped at 2 to avoid overdrawing on phones
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.setSize(parentElement.clientWidth, parentElement.clientHeight);
+
+    // Tone mapping maps the lit values, which are unbounded, down into display
+    // range. Without it anything the lights push past 1.0 clips to flat white
+    // and the highlights lose their shape. Neutral keeps hues stable as they
+    // roll off; THREE.ACESFilmicToneMapping is the more contrasty alternative.
+    renderer.toneMapping = THREE.NeutralToneMapping;
+    renderer.toneMappingExposure = LIGHTING.exposure;
+
+    // Let vertical page scrolling pass through the canvas. Without this the
+    // WebGL canvas swallows touch-drags and the page gets "stuck" on mobile.
+    renderer.domElement.style.touchAction = "pan-y";
+
+    parentElement.appendChild(renderer.domElement);
+
+    camera.position.z = 9;
+    camera.position.y = -0.05;
+
+    // --- Lights ---------------------------------------------------------
+    // Everything below is driven by LIGHTING at the top of this file.
+
+    function addDirectionalLight({ color, intensity, position }) {
+        const light = new THREE.DirectionalLight(color, intensity);
+        light.position.set(position[0], position[1], position[2]);
+        scene.add(light);
+        return light;
+    }
+
+    /* 
+    Rebuild Blender's sky as an environment map: a narrow vertical gradient
+    read as an equirectangular panorama, then prefiltered by PMREM so rough
+    surfaces sample a blurred version of it and polished ones a sharp one.
+    */
+    function createSkyEnvironment() {
+        const canvas = document.createElement("canvas");
+        canvas.width = 64;
+        canvas.height = 256;
+
+        const context = canvas.getContext("2d");
+        const gradient = context.createLinearGradient(0, 0, 0, canvas.height);
+        gradient.addColorStop(0, cssColor(LIGHTING.environment.skyColor));
+        gradient.addColorStop(0.5, cssColor(LIGHTING.environment.horizonColor));
+        gradient.addColorStop(1, cssColor(LIGHTING.environment.groundColor));
+        context.fillStyle = gradient;
+        context.fillRect(0, 0, canvas.width, canvas.height);
+
+        const panorama = new THREE.CanvasTexture(canvas);
+        panorama.mapping = THREE.EquirectangularReflectionMapping;
+        panorama.colorSpace = THREE.SRGBColorSpace;
+
+        const pmrem = new THREE.PMREMGenerator(renderer);
+        const environment = pmrem.fromEquirectangular(panorama).texture;
+
+        pmrem.dispose();
+        panorama.dispose();
+
+        return environment;
+    }
+
+    function cssColor(hex) {
+        return new THREE.Color(hex).getStyle();
+    }
+
+    let environmentTexture = null;
+
+    if (LIGHTING.environment.intensity > 0) {
+        environmentTexture = createSkyEnvironment();
+        scene.environment = environmentTexture;
+        scene.environmentIntensity = LIGHTING.environment.intensity;
+    }
+
+    const ambientLight = new THREE.AmbientLight(LIGHTING.ambient.color, LIGHTING.ambient.intensity);
+    scene.add(ambientLight);
+
+    const keyLight = addDirectionalLight(LIGHTING.key);
+    addDirectionalLight(LIGHTING.fill);
+    addDirectionalLight(LIGHTING.rim);
+
+    keyLight.castShadow = true;
+    keyLight.shadow.mapSize.width = 2048;
+    keyLight.shadow.mapSize.height = 2048;
+    keyLight.shadow.radius = 320; // blur amount, raise for softer edges
+    keyLight.shadow.blurSamples = 32; // smoothness of that blur, VSM-only property
+    keyLight.shadow.bias = -0.0015;
+
+    const scaledMaterials = new Set();
+
+    function applyScreenBrightness(material) {
+        if (!material || scaledMaterials.has(material)) return;
+        scaledMaterials.add(material);
+
+        if (material.isMeshBasicMaterial) {
+            material.color.multiplyScalar(LIGHTING.screenBrightness);
+            return;
+        }
+
+        if (material.emissive && material.emissive.getHex() !== 0x000000) {
+            material.emissiveIntensity *= LIGHTING.screenBrightness;
+        }
+    }
+
     loader.load(
         sceneModel,
         function (gltf) {
@@ -124,6 +245,9 @@ export default function Render3dPhone(parentElement, sceneModel) {
 
             object.traverse((child) => {
                 if (!child.isMesh) return;
+
+                const materials = Array.isArray(child.material) ? child.material : [child.material];
+                materials.forEach(applyScreenBrightness);
 
                 if (child.parent.name === "Body001") {
                     child.castShadow = true;
@@ -139,59 +263,25 @@ export default function Render3dPhone(parentElement, sceneModel) {
 
             scene.add(object);
 
-            // Fit the floor and the light's shadow frustum to the actual model
-            // instead of guessing fixed numbers.
             const box = new THREE.Box3().setFromObject(object);
-            const size = box.getSize(new THREE.Vector3());
-            const radius = Math.max(size.x, size.z) || 3;
+            const radius = box.getBoundingSphere(new THREE.Sphere()).radius || 3;
 
             positionFloor(box.min.y + 0.02);
 
-            topLight.shadow.camera.left = -radius;
-            topLight.shadow.camera.right = radius;
-            topLight.shadow.camera.top = radius;
-            topLight.shadow.camera.bottom = -radius;
-            topLight.shadow.camera.near = 0.1;
-            topLight.shadow.camera.far = topLight.position.distanceTo(new THREE.Vector3(0, box.min.y, 0)) + 2;
-            topLight.shadow.camera.updateProjectionMatrix();
+            const shadowCamera = keyLight.shadow.camera;
+            shadowCamera.left = -radius;
+            shadowCamera.right = radius;
+            shadowCamera.top = radius;
+            shadowCamera.bottom = -radius;
+            shadowCamera.near = 0.1;
+            shadowCamera.far = keyLight.position.length() + radius * 2;
+            shadowCamera.updateProjectionMatrix();
         },
         undefined,
         function (error) {
             console.error("Could not load 3D scene " + sceneModel, error);
         }
     );
-
-    const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
-    renderer.shadowMap.enabled = true;
-    renderer.shadowMap.type = THREE.VSMShadowMap; // supports a real, adjustable blur radius
-
-    // Match the device's pixel density so the phone stays sharp on hi-DPR
-    // (mobile/retina) screens. Capped at 2 to avoid overdrawing on phones
-    // that report a DPR of 3+ and tanking the framerate for no visible gain.
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-    renderer.setSize(parentElement.clientWidth, parentElement.clientHeight);
-
-    // Let vertical page scrolling pass through the canvas. Without this the
-    // WebGL canvas swallows touch-drags and the page gets "stuck" on mobile.
-    renderer.domElement.style.touchAction = "pan-y";
-
-    parentElement.appendChild(renderer.domElement);
-
-    camera.position.z = 9;
-    camera.position.y = -0.05;
-
-    const topLight = new THREE.DirectionalLight(0xffffff, 1);
-    topLight.position.set(0, 16, 0);
-    topLight.castShadow = true;
-    topLight.shadow.mapSize.width = 2048;
-    topLight.shadow.mapSize.height = 2048;
-    topLight.shadow.radius = 320; // blur amount, raise for softer edges
-    topLight.shadow.blurSamples = 32; // smoothness of that blur, VSM-only property
-    topLight.shadow.bias = -0.0015;
-    scene.add(topLight);
-
-    const ambientLight = new THREE.AmbientLight(0x333333, 1);
-    scene.add(ambientLight);
 
     const clock = new THREE.Clock();
     let elapsed = 0;
@@ -201,9 +291,6 @@ export default function Render3dPhone(parentElement, sceneModel) {
         return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
     }
 
-    // A wallpaper flips state when the cycle clock passes its next trigger.
-    // Comparing positions in the cycle (rather than an exact frame count) means
-    // a dropped frame delays the flip instead of skipping it entirely.
     function cyclePosition() {
         return ((elapsed * REFERENCE_FPS) % WALLPAPER_CYCLE_FRAMES) / REFERENCE_FPS;
     }
@@ -330,6 +417,7 @@ export default function Render3dPhone(parentElement, sceneModel) {
             materials.forEach((material) => material?.dispose());
         });
 
+        environmentTexture?.dispose();
         dracoLoader.dispose();
         renderer.dispose();
         renderer.domElement.remove();
