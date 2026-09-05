@@ -29,7 +29,17 @@ document.addEventListener("DOMContentLoaded", function () {
 
     gridStaggerAnimation();
 
-    render3dScenes();
+    // p5 runs in global mode, and p5 only starts a global sketch on `load`.
+    // Anything that keeps the load event pending -- a dynamically imported
+    // module chunk very much included -- keeps the hero sketch from starting,
+    // which is why moving to `import()` alone was not enough. Waiting for
+    // `load` before we even set the observers up takes the 3D bundle out of
+    // that critical path entirely.
+    if (document.readyState === "complete") {
+        render3dScenes();
+    } else {
+        window.addEventListener("load", render3dScenes, { once: true });
+    }
 });
 
 function textRevealAnimation() {
@@ -81,15 +91,12 @@ function gridStaggerAnimation() {
     });
 }
 
-// three.js and its loaders are by far the heaviest thing the site ships, and a
-// static `import` of them would be part of this module's graph -- which the
-// browser has to finish fetching and evaluating before it fires `load`. p5 runs
-// in global mode and starts on `load`, so a static import meant the hero sketch
-// sat there waiting on a bundle for a scene several screens further down.
-//
-// Importing on demand takes it out of that graph entirely: the hero paints as
-// soon as its own script is ready, and the 3D bundle plus the .glb are only
-// fetched once a scene is close enough to matter.
+// three.js and its loaders are by far the heaviest thing the site ships. A
+// static `import` would put them in this module's graph, which the browser has
+// to finish before it fires `load`; a dynamic `import()` started before `load`
+// keeps that event pending just the same. Both starve the hero sketch, so the
+// call site above waits for `load` and the bundle plus the .glb are only
+// fetched once a scene is actually close to the viewport.
 let phone3dModule = null;
 
 function loadPhone3d() {
